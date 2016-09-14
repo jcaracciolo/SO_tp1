@@ -8,7 +8,7 @@
 int main()
 {
     int fd;
-    char * myfifo = "/tmp/myfifo";
+    char * myfifo = "./myfifo";
     char buf[MAX_BUF];
 
     /* open, read, and display the message from the FIFO */

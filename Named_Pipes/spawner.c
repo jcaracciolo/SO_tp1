@@ -5,7 +5,7 @@
 int main(int argc, char *argv[]) {
 	int child1, child2;
 
-    char * myfifo = "/tmp/myfifo";
+    char * myfifo = "./myfifo";
 
     /* create the FIFO (named pipe) */
     mkfifo(myfifo, 0666);
@@ -24,10 +24,9 @@ int main(int argc, char *argv[]) {
 		printf("Shouldn't be printed\n");
 	}
 
-	waitpid(child1);
-	waitpid(child2);
+	waitpid(child1, NULL, 0);
+	waitpid(child2, NULL, 0);
 
 	unlink(myfifo);
-
 	return 0;
 }

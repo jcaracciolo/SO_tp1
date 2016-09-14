@@ -6,7 +6,7 @@
 int main()
 {
     int fd;
-    char * myfifo = "/tmp/myfifo";
+    char * myfifo = "./myfifo";
 
     /* write "Hi" to the FIFO */
     fd = open(myfifo, O_WRONLY);

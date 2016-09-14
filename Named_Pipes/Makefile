@@ -9,5 +9,7 @@ all: $(SRC)
 
 	gcc spawner.c
 
+	make clean
+
 clean:
 	rm *.o
