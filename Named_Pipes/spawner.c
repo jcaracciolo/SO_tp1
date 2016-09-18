@@ -1,14 +1,16 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include "coms.h"
 
 int main(int argc, char *argv[]) {
 	int child1, child2;
 
-    char * myfifo = "./myfifo";
+	connection * con = connect(NULL);
+    char * myfifo = con->inPath;//"./myfifo";
 
     /* create the FIFO (named pipe) */
-    mkfifo(myfifo, 0666);
+    //mkfifo(myfifo, 0666);
 
 	if ((child1 = fork()) == 0) {
 		// Child1

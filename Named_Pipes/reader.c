@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include "coms.h"
 
 #define MAX_BUF 1024
 

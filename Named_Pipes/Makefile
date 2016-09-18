@@ -7,7 +7,9 @@ all: $(SRC)
 	gcc -c writer.c
 	gcc writer.c -o writer
 
-	gcc spawner.c
+	gcc -c coms.c
+	gcc -c spawner.c
+	gcc coms.o spawner.o -o run
 
 	make clean
 
