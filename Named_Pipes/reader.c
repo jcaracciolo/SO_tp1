@@ -8,15 +8,15 @@
 
 int main()
 {
-    int fd;
-    char * myfifo = "./myfifo";
-    char buf[MAX_BUF];
+    // int fd;
+    // char * myfifo = "/tmp/server_fifo";
+    // char buf[MAX_BUF];
 
-    /* open, read, and display the message from the FIFO */
-    fd = open(myfifo, O_RDONLY);
-    read(fd, buf, MAX_BUF);
-    printf("Received: %s\n", buf);
-    close(fd);
+    //  /*open, read, and display the message from the FIFO */
+    // fd = open(myfifo, O_RDONLY);
+    // read(fd, buf, MAX_BUF);
+    // printf("Received: %s\n", buf);
+    // close(fd);
 
     return 0;
 }

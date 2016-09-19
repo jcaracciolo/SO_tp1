@@ -15,3 +15,4 @@ all: $(SRC)
 
 clean:
 	rm *.o
+	rm /tmp/*fifo*

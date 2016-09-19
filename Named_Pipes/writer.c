@@ -4,14 +4,16 @@
 #include <unistd.h>
 #include "coms.h"
 
-int main()
-{
+int main() {
+    write(3, "Hii", sizeof("Hii"));
+	connection * con = connect(NULL);
+
     int fd;
-    char * myfifo = "./myfifo";
+    char * myfifo = "/tmp/server_fifo";
 
     /* write "Hi" to the FIFO */
     fd = open(myfifo, O_WRONLY);
-    write(fd, "Hi", sizeof("Hi"));
+    //write(fd, "Hi", sizeof("Hi"));
     close(fd);
 
     return 0;

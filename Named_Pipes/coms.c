@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include "coms.h"
 
 int countDigits(int n) {
@@ -15,6 +16,7 @@ int countDigits(int n) {
 }
 
 connection * connect(address * addr) {
+	umask(0);
 	int pid = getpid();
 	connection * con = malloc(sizeof(connection));
 
@@ -38,8 +40,13 @@ connection * connect(address * addr) {
 		return 0;
 	}
 
-	//con->inFD = open(con->inFD, O_RDONLY);
-	//con->outFD = open(con->outFD, O_WRONLY);
+	printf("%s\n", con->inPath);
+	printf("%s\n", con->outPath);
+
+	//mkfifo("/tmp/myfifo", 0666);
+	printf("AAAAARRR\n");
+	con->inFD = open(con->inPath, O_RDONLY);	
+	//con->outFD = open(con->outPath, O_WRONLY);
 
 	return con;
 }
