@@ -4,7 +4,15 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <strings.h>
 #include "coms.h"
+
+ struct connection_t {
+	char * inPath;
+	char * outPath;
+	int inFD;
+	int outFD;
+};
 
 int countDigits(int n) {
 	int count = 0;
@@ -20,16 +28,6 @@ connection * connect(address * addr) {
 	int pid = getpid();
 	connection * con = malloc(sizeof(connection));
 
-	if ((con->outPath = malloc(15 + countDigits(pid))) == NULL) {
-		printf("Cannot create pipe. Lack of memory.\n");
-		return 0;
-	}
-	sprintf(con->outPath, "/tmp/%i_fifo_out", pid);
-	if (mkfifo(con->outPath, 0666) == -1) {
-		printf("Couldn't create FIFO.\n");
-		return 0;
-	}
-
 	if ((con->inPath = malloc(14 + countDigits(pid))) == NULL) {
 		printf("Cannot create pipe. Lack of memory.\n");
 		return 0;
@@ -40,13 +38,32 @@ connection * connect(address * addr) {
 		return 0;
 	}
 
+	if ((con->outPath = malloc(15 + countDigits(pid))) == NULL) {
+		printf("Cannot create pipe. Lack of memory.\n");
+		return 0;
+	}
+	sprintf(con->outPath, "/tmp/%i_fifo_out", pid);
+	if (mkfifo(con->outPath, 0666) == -1) {
+		printf("Couldn't create FIFO.\n");
+		return 0;
+	}
+
 	printf("%s\n", con->inPath);
 	printf("%s\n", con->outPath);
 
 	//mkfifo("/tmp/myfifo", 0666);
 	printf("AAAAARRR\n");
-	con->inFD = open(con->inPath, O_RDONLY);	
-	//con->outFD = open(con->outPath, O_WRONLY);
+	con->inFD = open(con->inPath, O_RDONLY | O_NONBLOCK);
+	con->outFD = open(con->outPath, O_RDWR);
+	int serverFD = open("/tmp/serverFIFO", O_WRONLY);
+	write(serverFD, con->outPath, strlen(con->outPath));
+	write(serverFD, con->inPath, strlen(con->inPath)+1);
 
 	return con;
+}
+
+int openAdress(char * ip) {
+	char * serverFIFO = "/tmp/serverFIFO";
+	mkfifo(serverFIFO, 0666);
+	return open(serverFIFO, O_RDONLY | O_NONBLOCK);
 }
