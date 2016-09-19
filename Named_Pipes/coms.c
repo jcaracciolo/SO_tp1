@@ -7,7 +7,9 @@
 #include <strings.h>
 #include "coms.h"
 
- struct connection_t {
+#define MAX_BUF 300
+
+struct connection_t {
 	char * inPath;
 	char * outPath;
 	int inFD;
@@ -48,22 +50,70 @@ connection * connect(address * addr) {
 		return 0;
 	}
 
-	printf("%s\n", con->inPath);
-	printf("%s\n", con->outPath);
+	// con->inFD = open(con->inPath, O_RDONLY | O_NONBLOCK);
+	// con->outFD = open(con->outPath, O_RDWR);
 
-	//mkfifo("/tmp/myfifo", 0666);
-	printf("AAAAARRR\n");
-	con->inFD = open(con->inPath, O_RDONLY | O_NONBLOCK);
-	con->outFD = open(con->outPath, O_RDWR);
+	// send to server info about the connection
 	int serverFD = open("/tmp/serverFIFO", O_WRONLY);
-	write(serverFD, con->outPath, strlen(con->outPath));
+	write(serverFD, con->outPath, strlen(con->outPath)+1);
 	write(serverFD, con->inPath, strlen(con->inPath)+1);
 
 	return con;
 }
 
 int openAdress(char * ip) {
-	char * serverFIFO = "/tmp/serverFIFO";
-	mkfifo(serverFIFO, 0666);
-	return open(serverFIFO, O_RDONLY | O_NONBLOCK);
+	if (strcmp("190.server.com", ip) == 0) {
+		char * serverFIFO = "/tmp/serverFIFO";
+		mkfifo(serverFIFO, 0666);
+		return open(serverFIFO, O_RDONLY | O_NONBLOCK);
+	} else {
+		printf("IP incorrect\n");
+		return -1;
+	}
+}
+
+connection * readFromServerAdress(int serverFD) {
+	connection * com = malloc(sizeof(connection));
+	com->inPath = malloc(MAX_BUF);
+	com->outPath = malloc(MAX_BUF);
+	
+	char buf[MAX_BUF];
+	buf[0] = 0;
+	while (buf[0] == 0) {
+		read(serverFD, buf, MAX_BUF);
+	}
+	strcpy(com->inPath, buf);
+	printf("%s\n", com->inPath);
+
+	buf[0] = 0;
+	while (buf[0] == 0) {
+		read(serverFD, buf, MAX_BUF);
+	}
+	strcpy(com->outPath, buf);
+	printf("%s\n", com->outPath);
+
+	// com->inFD = open(com->inPath, O_RDONLY | O_NONBLOCK);
+	// com->outFD = open(com->outPath, O_RDWR);
+
+	return com;
+}
+
+void openConnection(connection* con){
+	con->inFD=open(con->inPath,O_RDONLY | O_NONBLOCK);
+	printf("begFunct\n");
+	con->outFD=open(con->outPath,O_RDWR);
+	printf("endiFunct\n");
+}
+
+int send(connection * con, char * buffer, int len) {
+	printf("sending to...%s\n",con->outPath);
+	write(con->outFD, buffer, len);
+	printf("written\n");
+	return 0;
+}
+
+int receive(connection * con, char * buffer, int length) {
+	printf("receiving from..%s\n",con->inPath);
+	read(con->inFD, buffer, length);
+	return 0;
 }

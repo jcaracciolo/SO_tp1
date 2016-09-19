@@ -6,8 +6,8 @@
 
 #define MAX_BUF 1024
 
-int main()
-{
+int main(int argc, char ** argv) {
+	printf("i am the child\n");
     // int fd;
     // char * myfifo = "/tmp/server_fifo";
     // char buf[MAX_BUF];

@@ -2,39 +2,38 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <stdio.h>
 #include "coms.h"
 
 #define MAX_BUF 300
 
-void createChild(char * pipe ) {
-	int child1;
+void createChild(connection * con) {
+	int childPID;
 
-	if ((child1 = fork()) == 0) {
-		// Child1
-		char *args = 0;
-		execv("./reader", args);
-		printf("Reader fork failed\n");
+	if ((childPID = fork()) == 0) {
+		// Child
+		openConnection(con);
+		assist(con);
+		printf("Child fork failed\n");
 	}
+}
 
+void assist(connection* con){
+	printf("SOY EL HIJO");
+	send(con,"PA EL CLIENTE",14);
+	exit(0);
 }
 
 int main(int argc, char *argv[]) {
 	
 	int serverFD = openAdress("190.server.com");
 	if (serverFD == -1) {
-		printf("Opening adress failed/n");
+		printf("Opening server address failed/n");
 		exit(1);
 	}
-
-	char * buf = malloc(MAX_BUF);
-	buf[0]=0;
-	while (buf[0]==0) {
-		read(serverFD, buf, MAX_BUF);
-		printf("%s\n", buf);
-	}buf[0]=0;
-	while (buf[0]==0) {
-		read(serverFD, buf, MAX_BUF);
-		printf("%s\n", buf);
+	connection * con = readFromServerAdress(serverFD);
+	if(con!=NULL){
+		createChild(con);
 	}
 
 	return 0;
