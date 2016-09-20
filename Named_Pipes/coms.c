@@ -9,6 +9,11 @@
 
 #define MAX_BUF 300
 
+
+struct adress_t {
+	char * path; // '\0' ended
+};
+
 struct connection_t {
 	char * inPath;
 	char * outPath;
@@ -26,7 +31,11 @@ int countDigits(int n) {
 }
 
 connection * connect(char * addr) {
-	umask(0);
+
+	/** 
+	  * Create paths for two pipes (in and out) with the pid of the process.
+	  * This way every pipe will have a unique name.
+	  */
 	int pid = getpid();
 	connection * con = malloc(sizeof(connection));
 
@@ -50,70 +59,59 @@ connection * connect(char * addr) {
 		return 0;
 	}
 
-	// con->inFD = open(con->inPath, O_RDONLY | O_NONBLOCK);
-	// con->outFD = open(con->outPath, O_RDWR);
 
-	// send to server info about the connection
-	int serverFD = open("/tmp/serverFIFO", O_WRONLY);
-	write(serverFD, con->outPath, strlen(con->outPath)+1);
-	write(serverFD, con->inPath, strlen(con->inPath)+1);
+	// send to addr info about the connection	
+	char fifoToConnect[MAX_BUF] = {0};
+	strcpy(fifoToConnect, "/tmp/");
+	strcat(fifoToConnect, addr);
+
+	int fdToConnect = open(fifoToConnect, O_WRONLY);
+	write(fdToConnect, con->outPath, strlen(con->outPath)+1);
+	write(fdToConnect, con->inPath, strlen(con->inPath)+1);
 
 	return con;
 }
 
-int openAdress(char * ip) {
-	if (strcmp("190.server.com", ip) == 0) {
-		char * serverFIFO = "/tmp/serverFIFO";
-		mkfifo(serverFIFO, 0666);
-		return open(serverFIFO, O_RDONLY | O_NONBLOCK);
-	} else {
-		printf("IP incorrect\n");
-		return -1;
-	}
+int openAdress(char * addr) {
+	char newFIFO[MAX_BUF] = {0};
+	strcpy(newFIFO, "/tmp/");
+	strcat(newFIFO, addr);
+	mkfifo(newFIFO, 0666);
+	return open(newFIFO, O_RDONLY | O_NONBLOCK);
 }
 
-connection * readFromServerAdress(int serverFD) {
-	connection * com = malloc(sizeof(connection));
-	com->inPath = malloc(MAX_BUF);
-	com->outPath = malloc(MAX_BUF);
+connection * readNewConnection(int fd) {
+	connection * con = malloc(sizeof(connection));
+	con->inPath = malloc(MAX_BUF);
+	con->outPath = malloc(MAX_BUF);
 	
 	char buf[MAX_BUF];
 	buf[0] = 0;
 	while (buf[0] == 0) {
-		read(serverFD, buf, MAX_BUF);
+		read(fd, buf, MAX_BUF);
 	}
-	strcpy(com->inPath, buf);
-	printf("%s\n", com->inPath);
+	strcpy(con->inPath, buf);
 
 	buf[0] = 0;
 	while (buf[0] == 0) {
-		read(serverFD, buf, MAX_BUF);
+		read(fd, buf, MAX_BUF);
 	}
-	strcpy(com->outPath, buf);
-	printf("%s\n", com->outPath);
+	strcpy(con->outPath, buf);
 
-	// com->inFD = open(com->inPath, O_RDONLY | O_NONBLOCK);
-	// com->outFD = open(com->outPath, O_RDWR);
-
-	return com;
+	return con;
 }
 
 void openConnection(connection* con){
 	con->inFD=open(con->inPath,O_RDONLY | O_NONBLOCK);
-	printf("begFunct\n");
 	con->outFD=open(con->outPath,O_RDWR);
-	printf("endiFunct\n");
 }
 
 int send(connection * con, char * buffer, int len) {
-	printf("sending to...%s\n",con->outPath);
 	write(con->outFD, buffer, len);
-	printf("written\n");
 	return 0;
 }
 
 int receive(connection * con, char * buffer, int length) {
-	printf("receiving from..%s\n",con->inPath);
 	read(con->inFD, buffer, length);
 	return 0;
 }

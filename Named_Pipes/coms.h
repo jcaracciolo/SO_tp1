@@ -1,14 +1,7 @@
 #ifndef COMS_HNuevo 
 #define COMS_H
 
-typedef struct adress_t {
-	char * path; // '\0' ended
-} address;
-
-typedef struct communication_t {
-	char * inPath;
-	char * outPath;
-} communication;
+typedef struct adress_t address;
 
 typedef struct connection_t connection;
 
@@ -18,7 +11,7 @@ int send(connection * con, char * buffer, int cant);
 //connection * accept(struct address * addr);
 connection * connect(char * addr);
 int openAdress(char * ip);
-connection * readFromServerAdress(int serverFD);
+connection * readNewConnection(int serverFD);
 void openConnection(connection* con);
 
 #endif

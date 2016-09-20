@@ -21,8 +21,12 @@ void createChild(connection * con) {
 }
 
 void assist(connection* con) {
-	printf("SOY EL HIJO");
-	send(con,"PA EL CLIENTE",14);
+	send(con,"Mensaje de hijo a cliente", 26);
+	char buf[300]={0};
+	while(buf[0] == 0){
+		receive(con,buf,300);
+	}
+	printf("%s\n", buf);
 	exit(0);
 }
 
@@ -33,7 +37,7 @@ int main(int argc, char *argv[]) {
 		printf("Opening server address failed/n");
 		exit(1);
 	}
-	connection * con = readFromServerAdress(serverFD);
+	connection * con = readNewConnection(serverFD);
 	if(con!=NULL){
 		createChild(con);
 	}
