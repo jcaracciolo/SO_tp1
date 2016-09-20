@@ -3,7 +3,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "coms.h"
+#include "spawner.h"
 
 #define MAX_BUF 300
 
@@ -18,7 +20,7 @@ void createChild(connection * con) {
 	}
 }
 
-void assist(connection* con){
+void assist(connection* con) {
 	printf("SOY EL HIJO");
 	send(con,"PA EL CLIENTE",14);
 	exit(0);

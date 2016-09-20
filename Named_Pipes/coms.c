@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <strings.h>
+#include <string.h>
 #include "coms.h"
 
 #define MAX_BUF 300
@@ -25,7 +25,7 @@ int countDigits(int n) {
     return count;
 }
 
-connection * connect(address * addr) {
+connection * connect(char * addr) {
 	umask(0);
 	int pid = getpid();
 	connection * con = malloc(sizeof(connection));

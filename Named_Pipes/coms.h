@@ -16,7 +16,7 @@ typedef struct connection_t connection;
 int receive(connection * con, char * buffer, int length);
 int send(connection * con, char * buffer, int cant);
 //connection * accept(struct address * addr);
-connection * connect(address * addr);
+connection * connect(char * addr);
 int openAdress(char * ip);
 connection * readFromServerAdress(int serverFD);
 void openConnection(connection* con);
