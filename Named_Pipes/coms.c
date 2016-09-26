@@ -1,117 +1,112 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <string.h>
+#include <strings.h>
+#include <sys/types.h> 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h> 
+
 #include "coms.h"
 
-#define MAX_BUF 300
-
-
-struct adress_t {
-	char * path; // '\0' ended
-};
-
 struct connection_t {
-	char * inPath;
-	char * outPath;
-	int inFD;
-	int outFD;
+	int sockFD;
 };
 
-int countDigits(int n) {
-	int count = 0;
-	while(n!=0) {
-        n /= 10;
-        ++count;
-    }
-    return count;
-}
-
-connection * connectToAddres(char * addr) {
-
-	/** 
-	  * Create paths for two pipes (in and out) with the pid of the process.
-	  * This way every pipe will have a unique name.
-	  */
-	int pid = getpid();
+/* addr is '\0' ended and has an addres and the host name
+ * separated by '.'
+ * example: 5545.hostname
+ */
+connection * connectToAddres(char * id) {
 	connection * con = malloc(sizeof(connection));
+	struct hostent * host;
+    struct sockaddr_in host_addr;
+	char addr[255];
+	char hostName[255];
 
-	if ((con->inPath = malloc(14 + countDigits(pid))) == NULL) {
-		printf("Cannot create pipe. Lack of memory.\n");
-		return 0;
+	int i = 0;
+	while (id[i] != '.') {
+		addr[i] = id[i];
+		i++;
 	}
-	sprintf(con->inPath, "/tmp/%i_fifo_in", pid);
-	if (mkfifo(con->inPath, 0666) == -1) {
-		printf("Couldn't create FIFO.\n");
-		return 0;
+	addr[i++] = '\0';
+
+	int j = 0;
+	while (id[i] != '\0') {
+		hostName[j++] = id[i];
+		i++;
 	}
+	hostName[j] = '\0';
 
-	if ((con->outPath = malloc(15 + countDigits(pid))) == NULL) {
-		printf("Cannot create pipe. Lack of memory.\n");
-		return 0;
-	}
-	sprintf(con->outPath, "/tmp/%i_fifo_out", pid);
-	if (mkfifo(con->outPath, 0666) == -1) {
-		printf("Couldn't create FIFO.\n");
-		return 0;
-	}
+	int portno = atoi(addr);
+    con->sockFD = socket(AF_INET, SOCK_STREAM, 0);
+    if (con->sockFD < 0) 
+		error("ERROR opening socket");
 
-	con->inFD=open(con->inPath,O_RDONLY | O_NONBLOCK);
-	con->outFD=open(con->outPath,O_RDWR);
+    host = gethostbyname(hostName);
+    if (host == NULL) {
+		fprintf(stderr,"ERROR, no such host\n");
+		exit(0);
+    }
+    bzero((char *) &host_addr, sizeof(host_addr));
+    host_addr.sin_family = AF_INET;
+    bcopy((char *)host->h_addr, (char *)&host_addr.sin_addr.s_addr, host->h_length);
+    host_addr.sin_port = htons(portno);
 
-	// send to addr info about the connection	
-	char fifoToConnect[MAX_BUF] = {0};
-	strcpy(fifoToConnect, "/tmp/");
-	strcat(fifoToConnect, addr);
+    if (connect(con->sockFD,(struct sockaddr *)&host_addr,sizeof(host_addr)) < 0) 
+        error("ERROR connecting");
 
-	int fdToConnect = open(fifoToConnect, O_WRONLY);
-	write(fdToConnect, con->outPath, strlen(con->outPath)+1);
-	write(fdToConnect, con->inPath, strlen(con->inPath)+1);
-
-	return con;
+    return con;
 }
 
 int openAdress(char * addr) {
-	char newFIFO[MAX_BUF] = {0};
-	strcpy(newFIFO, "/tmp/");
-	strcat(newFIFO, addr);
-	mkfifo(newFIFO, 0666);
-	return open(newFIFO, O_RDONLY | O_NONBLOCK);
+	struct sockaddr_in new_addr;
+	char port[255];
+	int sockfd = socket(AF_INET, SOCK_STREAM, 0);	// openning socket
+	if (sockfd < 0) 
+		error("ERROR opening socket");
+
+	int i = 0;
+	while (addr[i] != '.') {
+		port[i] = addr[i];
+		i++;
+	}
+	port[i++] = '\0';
+
+	bzero((char *) &new_addr, sizeof(new_addr));
+
+	int portno = atoi(port);	// getting port number (passed in arguments)
+
+	// initializing server address
+	new_addr.sin_family = AF_INET;
+	new_addr.sin_addr.s_addr = INADDR_ANY;
+	new_addr.sin_port = htons(portno);
+
+	if (bind(sockfd, (struct sockaddr *) &new_addr, sizeof(new_addr)) < 0) 
+		error("ERROR on binding");
+
+	return sockfd;
 }
 
-connection * readNewConnection(int fd) {
+connection * readNewConnection(int fd) {	
 	connection * con = malloc(sizeof(connection));
-	con->inPath = malloc(MAX_BUF);
-	con->outPath = malloc(MAX_BUF);
-	
-	char buf[MAX_BUF];
-	buf[0] = 0;
-	while (buf[0] == 0) {
-		read(fd, buf, MAX_BUF);
-	}
-	strcpy(con->inPath, buf);
+	struct sockaddr_in connectedSocket;
 
-	buf[0] = 0;
-	while (buf[0] == 0) {
-		read(fd, buf, MAX_BUF);
-	}
-	strcpy(con->outPath, buf);
+	listen(fd,5);	// activate listening from socket (maximum 5 queued connections)
 
-	con->inFD=open(con->inPath,O_RDONLY | O_NONBLOCK);
-	con->outFD=open(con->outPath,O_RDWR);
-
+	int socklen = sizeof(connectedSocket);
+	con->sockFD = accept(fd, (struct sockaddr *) &connectedSocket, &socklen); // waiting for client to connect
+	if (con->sockFD < 0)
+		error("ERROR on accept");
 	return con;
 }
 
-int sendBytes(connection * con, char * buffer, int len) {
-	write(con->outFD, buffer, len);
+int sendBytes(connection * con, char * buffer, int cant) {	
+	write(con->sockFD, buffer, cant);
 	return 0;
 }
 
-int receiveBytes(connection * con, char * buffer, int length) {
-	read(con->inFD, buffer, length);
-	return 0;
+int receiveBytes(connection * con, char * buffer, int len) {
+	return read(con->sockFD, buffer, len);
 }
+
+void openConnection(connection* con) {}

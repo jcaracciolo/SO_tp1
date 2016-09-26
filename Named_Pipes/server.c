@@ -30,8 +30,13 @@ void assist(connection* con) {
 }
 
 int main(int argc, char *argv[]) {
-	
-	int serverFD = openAdress("12352.epord-linux-mint");
+
+	char hostname[250];
+	char buffer[250];
+	gethostname(hostname,250);
+	strcpy(buffer,"12352.");
+	strcat(buffer,hostname);
+	int serverFD = openAdress(buffer);
 	if (serverFD < 0) {
 		printf("Opening server address failed\n");
 		exit(1);

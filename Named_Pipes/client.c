@@ -9,7 +9,12 @@
 #define MAX_BUF 300
 
 int main() {
-	connection * con = connectToAddres("12352.epord-linux-mint");
+	char hostname[250];
+	char buffer[250];
+	gethostname(hostname,250);
+	strcpy(buffer,"12352.");
+	strcat(buffer,hostname);
+	connection * con = connectToAddres(buffer);
 
 	char buf[MAX_BUF]={0};
 	while(buf[0] == 0){
