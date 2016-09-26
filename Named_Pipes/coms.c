@@ -30,7 +30,7 @@ int countDigits(int n) {
     return count;
 }
 
-connection * connect(char * addr) {
+connection * connectToAddres(char * addr) {
 
 	/** 
 	  * Create paths for two pipes (in and out) with the pid of the process.
@@ -59,6 +59,8 @@ connection * connect(char * addr) {
 		return 0;
 	}
 
+	con->inFD=open(con->inPath,O_RDONLY | O_NONBLOCK);
+	con->outFD=open(con->outPath,O_RDWR);
 
 	// send to addr info about the connection	
 	char fifoToConnect[MAX_BUF] = {0};
@@ -98,20 +100,18 @@ connection * readNewConnection(int fd) {
 	}
 	strcpy(con->outPath, buf);
 
+	con->inFD=open(con->inPath,O_RDONLY | O_NONBLOCK);
+	con->outFD=open(con->outPath,O_RDWR);
+
 	return con;
 }
 
-void openConnection(connection* con){
-	con->inFD=open(con->inPath,O_RDONLY | O_NONBLOCK);
-	con->outFD=open(con->outPath,O_RDWR);
-}
-
-int send(connection * con, char * buffer, int len) {
+int sendBytes(connection * con, char * buffer, int len) {
 	write(con->outFD, buffer, len);
 	return 0;
 }
 
-int receive(connection * con, char * buffer, int length) {
+int receiveBytes(connection * con, char * buffer, int length) {
 	read(con->inFD, buffer, length);
 	return 0;
 }

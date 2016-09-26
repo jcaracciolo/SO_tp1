@@ -9,15 +9,14 @@
 #define MAX_BUF 300
 
 int main() {
-	connection * con = connect("190.server.com");
-	openConnection(con);
+	connection * con = connectToAddres("12352.epord-linux-mint");
 
 	char buf[MAX_BUF]={0};
 	while(buf[0] == 0){
-		receive(con,buf,MAX_BUF);
+		receiveBytes(con,buf,MAX_BUF);
 	}
 
 	printf("%s\n",buf);
 
-	send(con, "Respuesta del cliente al hijo", 30);
+	sendBytes(con, "Respuesta del cliente al hijo", 30);
 }

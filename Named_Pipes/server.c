@@ -14,17 +14,16 @@ void createChild(connection * con) {
 
 	if ((childPID = fork()) == 0) {
 		// Child
-		openConnection(con);
 		assist(con);
 		printf("Child fork failed\n");
 	}
 }
 
 void assist(connection* con) {
-	send(con,"Mensaje de hijo a cliente", 26);
+	sendBytes(con,"Mensaje de hijo a cliente", 26);
 	char buf[300]={0};
 	while(buf[0] == 0){
-		receive(con,buf,300);
+		receiveBytes(con,buf,300);
 	}
 	printf("%s\n", buf);
 	exit(0);
@@ -32,15 +31,16 @@ void assist(connection* con) {
 
 int main(int argc, char *argv[]) {
 	
-	int serverFD = openAdress("190.server.com");
-	if (serverFD == -1) {
-		printf("Opening server address failed/n");
+	int serverFD = openAdress("12352.epord-linux-mint");
+	if (serverFD < 0) {
+		printf("Opening server address failed\n");
 		exit(1);
 	}
 	connection * con = readNewConnection(serverFD);
 	if(con!=NULL){
 		createChild(con);
+	} else {
+		printf("Falied creating connection.\n");
 	}
-
 	return 0;
 }
