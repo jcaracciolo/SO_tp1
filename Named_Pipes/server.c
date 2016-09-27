@@ -77,54 +77,52 @@ int connectDB(dbdata_t* DBdata){
         close(0);
         close(1);
         close(2);
-        open(PATHDBIN,O_RDONLY | O_NONBLOCK);
-        open(PATHDBOUT,O_RDWR);
-        open(PATHDBOUT,O_RDWR);
+        open(PATHDBIN,O_RDONLY);
+        open(PATHDBOUT,O_WRONLY);
+        open(PATHDBOUT,O_WRONLY);
 
-        char* ar[3]={"sqlite3",0,0};
+        char* ar[3]={"sqlite3",0,NULL};
         execv("./sqlite3",ar);
     }else{
-        printf("Connecting Database...\n");
-        DBdata->fdout = open(PATHDBOUT,O_RDONLY | O_NONBLOCK);
-        DBdata->fdin = open(PATHDBIN,O_RDWR);
+        char *msg = "create table hola(a int);insert into hola values(1);select * from hola;drop table hola;\n";
+        char *msgerror = "TEST;\n";
+        char str[200] = {0};
 
 
-        while(1) {
-            printf("Checking Database output...\n");
-            char *msg = "create table hola(a int);insert into hola values(1);select * from hola;drop table hola;\n";
-            char str[200] = {0};
-            int a = 0;
+        printf("Connecting Database...\n\n");
 
-            write(DBdata->fdin, msg, strlen(msg) + 1);
-            while (a <= 0) {
-                a = read(DBdata->fdout, str, 200);
-            }
-            if (strcmp("1\n", str) != 0) {
-                printf("DATABASE CONNECTION ERROR!");
-                printf("%s", str);
-                exit(0);
-            }
-            printf("Database output connected\n");
+        DBdata->fdin = open(PATHDBIN,O_WRONLY);
+        DBdata->fdout = open(PATHDBOUT,O_RDONLY);
+
+
+        printf("Checking Database input...\n\n");
+
+        write(DBdata->fdin, msg, strlen(msg));
+
+        printf("Checking Database output...\n\n");
+        read(DBdata->fdout, str, 200);
+
+        if(strcmp(str,"1\n")!=0) {
+            printf("ERROR CONNECTING DATABASE I/O\n");
+            printf("READ: %s", str);
+            exit(1);
         }
 
-//        printf("Checking Database error output...\n");
-//
-//        char* msgerror="create table hola(a int);insert into hola values(1);select * from hola;drop table hola;";
-//        write(DBdata->fdin,msgerror,strlen(msgerror)+1);
-//        a=0;
-//        while(a<=0) {
-//            a = read(DBdata->fdout, str, 200);
-//        }
-//        printf("SDADAS\n");
-//
-//        if(strcmp("1\n",str)!=0){
-//            printf("DATABASE CONNECTION ERROR!");
-//            printf("%s",str);
-//            exit(0);
-//        }
-//        printf("Database output connected\n");
-//
-//        printf("Database connected\n");
+        printf("Database I/O connection successful\n\n");
+
+        memset(str, 0, 200);
+        printf("Checking Database error output...\n\n");
+
+        write(DBdata->fdin, msgerror, strlen(msgerror));
+        read(DBdata->fdout, str, 200);
+
+        if(strcmp(str,"Error: near line 2: near \"TEST\": syntax error\n")!=0) {
+            printf("ERROR CONNECTING DATABASE ERROR OUTPUT\n");
+            printf("READ: %s", str);
+            exit(1);
+        }
+
+        printf("Database error output connection successful\n\n");
 
     }
 
