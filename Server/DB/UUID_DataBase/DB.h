@@ -13,11 +13,13 @@ typedef struct{
 
 UUID newUUID(uint64_t high,uint64_t low);
 
-void DBadd(UUID id);
+void UUIDadd(UUID id);
 
-void DBremove(UUID id);
+void UUIDremove(UUID id);
 
-int DBcontains(UUID id);
+int UUIDcontains(UUID id);
+
+UUID getRandomUUID();
 
 
 

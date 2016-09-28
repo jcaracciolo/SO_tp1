@@ -1,24 +1,12 @@
 #include <iostream>
 #include <set>
 #include <stdint.h>
+#include <stdlib.h>
 
 typedef struct{
     uint64_t high;
     uint64_t low;
 } UUID;
-
-
-// {
-//
-//UUID newUUID(uint64_t high,uint64_t low);
-//
-//void DBadd(UUID id);
-//
-//void DBremove(UUID id);
-//
-//int DBcontains(UUID id);
-//
-//}
 
 bool operator<(const UUID &a,const UUID &b){
     return (a.high==b.high)? a.low<b.low : a.high < b.high ;
@@ -33,14 +21,18 @@ extern "C" UUID newUUID(uint64_t high,uint64_t low){
     return ans;
 }
 
-extern "C" void DBadd(UUID id){
+extern "C" void UUIDadd(UUID id){
     database.insert(id);
 }
 
-extern "C" void DBremove(UUID id){
+extern "C" void UUIDremove(UUID id){
     database.erase(id);
 }
 
-extern "C" int DBcontains(UUID id){
+extern "C" int UUIDcontains(UUID id){
     return (int)(database.find(id) != database.end());
+}
+
+extern "C" UUID getRandomUUID(){
+    return *(database.lower_bound(newUUID((uint64_t)random(),(uint64_t)random())));
 }

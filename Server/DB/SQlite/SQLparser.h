@@ -21,5 +21,7 @@ int changeValue(dbdata_t * dbData, char * prodName, int stock, int price);
 
 int exitDB(dbdata_t * dbData);
 
+void checkDBConnection(dbdata_t* dbData);
+
 
 #endif

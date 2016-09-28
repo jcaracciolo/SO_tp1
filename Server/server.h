@@ -4,5 +4,6 @@
 
 void createChild(connection * con);
 void assist(connection* con);
+void initializeUUID(unsigned int n);
 
 #endif
