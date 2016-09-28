@@ -40,19 +40,15 @@ typedef struct{
 } dbdata_t;
 
 int main(int argc, char *argv[]) {
+    char hostname[250];
+    char buffer[250];
 
     dbdata_t* DBdata=malloc(sizeof(dbdata_t));
     connectDB(DBdata);
-
-
-
-
-
-	char hostname[250];
-	char buffer[250];
 	gethostname(hostname,250);
 	strcpy(buffer,"12352.");
 	strcat(buffer,hostname);
+
 	int serverFD = openAdress(buffer);
 	if (serverFD < 0) {
 		printf("Opening server address failed\n");
@@ -64,6 +60,7 @@ int main(int argc, char *argv[]) {
 	} else {
 		printf("Falied creating connection.\n");
 	}
+
 	return 0;
 }
 
@@ -123,6 +120,8 @@ int connectDB(dbdata_t* DBdata){
         }
 
         printf("Database error output connection successful\n\n");
+
+        printf("Database connection completed and successful\n\n");
 
     }
 
