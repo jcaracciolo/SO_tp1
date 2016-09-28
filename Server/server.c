@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "coms.h"
+#include "Coms/coms.h"
 #include "server.h"
 
 #define PATHDBIN "/tmp/fifoDBserverIN"
@@ -33,11 +33,7 @@ void assist(connection* con) {
 	exit(0);
 }
 
-typedef struct{
-    int fdin;
-    int fdout;
-    sem_t* sem;
-} dbdata_t;
+
 
 int main(int argc, char *argv[]) {
     char hostname[250];
@@ -78,23 +74,19 @@ int connectDB(dbdata_t* DBdata){
         open(PATHDBIN,O_RDONLY);
         open(PATHDBOUT,O_WRONLY);
         open(PATHDBOUT,O_WRONLY);
-
         char* ar[3]={"sqlite3",0,NULL};
-        execv("./sqlite3",ar);
+        execv("./DB/SQlite/sqlite3",ar);
     }else{
         char *msg = "create table hola(a int);insert into hola values(1);select * from hola;drop table hola;\n";
         char *msgerror = "TEST;\n";
         char str[200] = {0};
-
 
         printf("Connecting Database...\n\n");
 
         DBdata->fdin = open(PATHDBIN,O_WRONLY);
         DBdata->fdout = open(PATHDBOUT,O_RDONLY);
 
-
         printf("Checking Database input...\n\n");
-
         write(DBdata->fdin, msg, strlen(msg));
 
         printf("Checking Database output...\n\n");
@@ -109,6 +101,7 @@ int connectDB(dbdata_t* DBdata){
         printf("Database I/O connection successful\n\n");
 
         memset(str, 0, 200);
+
         printf("Checking Database error output...\n\n");
 
         write(DBdata->fdin, msgerror, strlen(msgerror));

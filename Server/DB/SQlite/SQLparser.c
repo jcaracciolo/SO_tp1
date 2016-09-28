@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-
+#include "../../server.h"
 
 int getPrice(char * prodName, dbdata_t * dbData) {
 	char ans[200];
@@ -42,6 +42,6 @@ int getStock(char * prodName, dbdata_t * dbData) {
 	
 }
 
-int main() {
-	getPrice("papas",  "Nothing");
-}
+//int main() {
+//	getPrice("papas",  "Nothing");
+//}

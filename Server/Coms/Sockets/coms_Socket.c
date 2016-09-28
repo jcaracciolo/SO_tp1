@@ -6,7 +6,7 @@
 #include <netinet/in.h>
 #include <netdb.h> 
 
-#include "coms.h"
+#include "../coms.h"
 
 struct connection_t {
 	int sockFD;

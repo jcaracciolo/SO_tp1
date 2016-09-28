@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
-#include "coms.h"
+#include "../coms.h"
 
 #define MAX_BUF 300
 
