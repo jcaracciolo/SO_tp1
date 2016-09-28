@@ -46,6 +46,7 @@ int main(int argc, char *argv[]) {
     dbdata_t* DBdata=malloc(sizeof(dbdata_t));
     connectDB(DBdata);
 	gethostname(hostname,250);
+
 	strcpy(buffer,"12352.");
 	strcat(buffer,hostname);
 
