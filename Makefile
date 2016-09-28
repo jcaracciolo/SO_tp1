@@ -1,13 +1,9 @@
-SRCC=$(wildcard *.c)
-SRCPP=$(wildcard *.cpp)
-OBJ = $(SRCC:.c=.o) $(SRCPP:.cpp=.o)
-
-.PHONY: clean all
-
 all:
-	cd Named_Pipes; make all
-	echo a >> dummy
-	rm $(wildcard *.o) $(wildcard *.gch) $(wildcard./run) dummy
-	gcc -c $(SRCC) $(wildcard *.h)
-	g++ -c $(SRCPP)
-	g++ -o run $(OBJ)
+	cd Server; make ${ARGS}
+	cd Client; make
+	rm -f /tmp/*fifo*
+
+clean:
+	cd Server; make clean
+	cd Client; make clean
+	rm -f /tmp/*fifo*
