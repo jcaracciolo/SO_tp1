@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "Coms/coms.h"
 #include "server.h"
 #include "DB/SQlite/SQLparser.h"
