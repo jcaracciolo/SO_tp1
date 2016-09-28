@@ -4,25 +4,25 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
-#include "../Server/Coms/coms.h"
+#include "../Server/Marshalling/marsh.h"
 
 #define MAX_BUF 300
 
 int main() {
 	char hostname[250];
 	char buffer[250];
-	
+
 	gethostname(hostname,250);
 	strcpy(buffer,"12352.");
 	strcat(buffer,hostname);
-	connection * con = connectToAddres(buffer);
+	connection * con = connect(buffer);
 
 	char buf[MAX_BUF]={0};
 	while(buf[0] == 0){
-		receiveBytes(con,buf,MAX_BUF);
+		receiveString(con,buf,MAX_BUF);
 	}
 
 	printf("%s\n",buf);
 
-	sendBytes(con, "Respuesta del cliente al hijo", 30);
+	sendString(con, "String mandado por cliente\0");
 }

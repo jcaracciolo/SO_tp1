@@ -26,6 +26,7 @@ void createChild(connection * con) {
 }
 
 void assist(connection* con) {
+	//
 	sendBytes(con,"Mensaje de hijo a cliente", 26);
 	char buf[300]={0};
 	while(buf[0] == 0){
