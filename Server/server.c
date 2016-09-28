@@ -1,12 +1,13 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <semaphore.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "coms.h"
+#include "Coms/coms.h"
 #include "server.h"
-#include "SQLparser.h"
+#include "DB/SQlite/SQLparser.h"
 
 #define PATHDBIN "/tmp/fifoDBserverIN"
 #define PATHDBOUT "/tmp/fifoDBserverOut"
@@ -36,15 +37,16 @@ void assist(connection* con) {
 
 
 int main(int argc, char *argv[]) {
+    char hostname[250];
+    char buffer[250];
 
     dbdata_t* DBdata=malloc(sizeof(dbdata_t));
     connectDB(DBdata);
-
-	char hostname[250];
-	char buffer[250];
 	gethostname(hostname,250);
+
 	strcpy(buffer,"12352.");
 	strcat(buffer,hostname);
+
 	int serverFD = openAdress(buffer);
 	if (serverFD < 0) {
 		printf("Opening server address failed\n");
@@ -56,6 +58,7 @@ int main(int argc, char *argv[]) {
 	} else {
 		printf("Falied creating connection.\n");
 	}
+
 	return 0;
 }
 
@@ -68,8 +71,8 @@ int connectDB(dbdata_t* DBdata){
 
     mkfifo(PATHDBOUT,0666);
     mkfifo(PATHDBIN,0666);
-int pid;
-    if ((pid=fork()) == 0) {
+
+    if (fork() == 0) {
         //child DATABASE
         close(0);
         close(1);
@@ -77,9 +80,8 @@ int pid;
         open(PATHDBIN,O_RDONLY);
         open(PATHDBOUT,O_WRONLY);
         open(PATHDBOUT,O_WRONLY);
-
         char* ar[3]={"sqlite3","-echo",NULL};
-        execv("./sqlite3",ar);
+        execv("./DB/SQlite/sqlite3",ar);
     } else {
 
         DBdata->fdin = open(PATHDBIN,O_WRONLY);
@@ -91,12 +93,15 @@ int pid;
         int stock = getStock(DBdata, "papa");
         printf("Papa cuesta: %i\nPapa stock: %i\n", price, stock);
 
+		puts("Modificando tabla...");
+
         changeValue(DBdata, "papa", 40, 60);
         price = getPrice(DBdata, "papa");
         stock = getStock(DBdata, "papa");
         printf("Papa cuesta: %i\nPapa stock: %i\n", price, stock);
 
         exitDB(DBdata);
+
     }
 
     return 0;
