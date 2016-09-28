@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <poll.h>
 #include "../coms.h"
 
 #define MAX_BUF 300
@@ -68,8 +69,15 @@ connection * connectToAddres(char * addr) {
 	strcat(fifoToConnect, addr);
 
 	int fdToConnect = open(fifoToConnect, O_WRONLY);
-	write(fdToConnect, con->outPath, strlen(con->outPath)+1);
-	write(fdToConnect, con->inPath, strlen(con->inPath)+1);
+	char fifoPaths[MAX_BUF];
+
+	strcpy(fifoPaths, con->outPath);
+	strcat(fifoPaths, "\n");
+	strcat(fifoPaths, con->inPath);
+
+	write(fdToConnect, fifoPaths, strlen(fifoPaths)+1);
+	// write(fdToConnect, con->outPath, strlen(con->outPath)+1);
+	// write(fdToConnect, con->inPath, strlen(con->inPath)+1);
 
 	return con;
 }
@@ -79,30 +87,46 @@ int openAdress(char * addr) {
 	strcpy(newFIFO, "/tmp/");
 	strcat(newFIFO, addr);
 	mkfifo(newFIFO, 0666);
-	return open(newFIFO, O_RDONLY | O_NONBLOCK);
+	return open(newFIFO, O_RDWR);	// O_RDWR beacause p
 }
 
 connection * readNewConnection(int fd) {
+	struct pollfd poll_list[2];
 	connection * con = malloc(sizeof(connection));
-	con->inPath = malloc(MAX_BUF);
-	con->outPath = malloc(MAX_BUF);
-	
+	con->inPath = calloc(MAX_BUF, 1);
+	con->outPath = calloc(MAX_BUF, 1);
+
+    poll_list[0].fd = fd;
+    poll_list[0].events = POLLIN;
+
+    // poll checks if something was sent to fd
+	int readSmth = poll(poll_list, (unsigned long) 1, 10);
+	if(readSmth == 0) {
+		return NULL;
+	}
+
 	char buf[MAX_BUF];
 	buf[0] = 0;
 	while (buf[0] == 0) {
 		read(fd, buf, MAX_BUF);
 	}
-	strcpy(con->inPath, buf);
 
-	buf[0] = 0;
-	while (buf[0] == 0) {
-		read(fd, buf, MAX_BUF);
+	int i = 0;
+	while (buf[i] != '\n'){
+		con->inPath[i] = buf[i];
+		i++;
 	}
-	strcpy(con->outPath, buf);
+	con->inPath[i++] = '\0';
+
+	int j = 0;
+	while (buf[i] != '\0'){
+		con->outPath[j] = buf[i];
+		i++; j++;
+	}
+	con->outPath[j] = '\0';
 
 	con->inFD=open(con->inPath,O_RDONLY | O_NONBLOCK);
 	con->outFD=open(con->outPath,O_RDWR);
-
 	return con;
 }
 

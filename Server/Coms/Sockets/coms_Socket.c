@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h> 
+#include <poll.h>
 
 #include "../coms.h"
 
@@ -90,11 +91,21 @@ int openAdress(char * addr) {
 connection * readNewConnection(int fd) {	
 	connection * con = malloc(sizeof(connection));
 	struct sockaddr_in connectedSocket;
+	struct pollfd poll_list[2];
 
 	listen(fd,5);	// activate listening from socket (maximum 5 queued connections)
 
+    poll_list[0].fd = fd;
+    poll_list[0].events = POLLIN|POLLPRI;
+
+    // poll checks if something was sent to fd
+	int readSmth = poll(poll_list, (unsigned long) 1, 10);
+	if(readSmth == 0) {
+		return NULL;
+	}
+
 	int socklen = sizeof(connectedSocket);
-	con->sockFD = accept(fd, (struct sockaddr *) &connectedSocket, &socklen); // waiting for client to connect
+	con->sockFD = accept4(fd, (struct sockaddr *) &connectedSocket, &socklen, SOCK_NONBLOCK); // waiting for client to connect
 	if (con->sockFD < 0)
 		error("ERROR on accept");
 	return con;
@@ -108,5 +119,3 @@ int sendBytes(connection * con, char * buffer, int cant) {
 int receiveBytes(connection * con, char * buffer, int len) {
 	return read(con->sockFD, buffer, len);
 }
-
-void openConnection(connection* con) {}

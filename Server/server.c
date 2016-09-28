@@ -53,12 +53,15 @@ int main(int argc, char *argv[]) {
 		printf("Opening server address failed\n");
 		exit(1);
 	}
-	connection * con = readNewConnection(serverFD);
-	if(con!=NULL){
-		createChild(con);
-	} else {
-		printf("Falied creating connection.\n");
-	}
+
+    while (1) {
+    	connection * con = readNewConnection(serverFD);
+    	if(con!=NULL){
+    		createChild(con);
+    	} else {
+            // server do his stuff...
+        }
+    }
 
 	return 0;
 }
@@ -90,18 +93,18 @@ int connectDB(dbdata_t* DBdata){
 
         initializeDB(DBdata);
 
-        int price = getPrice(DBdata, "papa");
-        int stock = getStock(DBdata, "papa");
-        printf("Papa cuesta: %i\nPapa stock: %i\n", price, stock);
+  //       int price = getPrice(DBdata, "papa");
+  //       int stock = getStock(DBdata, "papa");
+  //       printf("Papa cuesta: %i\nPapa stock: %i\n", price, stock);
 
-		puts("Modificando tabla...");
+		// puts("Modificando tabla...");
 
-        changeValue(DBdata, "papa", 40, 60);
-        price = getPrice(DBdata, "papa");
-        stock = getStock(DBdata, "papa");
-        printf("Papa cuesta: %i\nPapa stock: %i\n", price, stock);
+  //       changeValue(DBdata, "papa", 40, 60);
+  //       price = getPrice(DBdata, "papa");
+  //       stock = getStock(DBdata, "papa");
+  //       printf("Papa cuesta: %i\nPapa stock: %i\n", price, stock);
 
-        exitDB(DBdata);
+  //       exitDB(DBdata);
 
     }
 

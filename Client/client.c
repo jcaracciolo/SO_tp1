@@ -11,6 +11,7 @@
 int main() {
 	char hostname[250];
 	char buffer[250];
+	
 	gethostname(hostname,250);
 	strcpy(buffer,"12352.");
 	strcat(buffer,hostname);
