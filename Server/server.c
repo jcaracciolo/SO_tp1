@@ -11,6 +11,7 @@
 #include "server.h"
 #include "DB/SQlite/SQLparser.h"
 #include "DB/UUID_DataBase/DB.h"
+#include "Marshalling/marsh.h"
 
 #define PATHDBIN "/tmp/fifoDBserverIN"
 #define PATHDBOUT "/tmp/fifoDBserverOut"
@@ -35,6 +36,8 @@ void assist(connection* con) {
         while (buf[0] == 0) {
             receiveBytes(con,buf,300);
         }
+				printf("%s thsi %d\n",buf,3);
+				sendInt(con, 76);
 
         if (strncmp(buf, "get_price_of ", 13) == 0) {
             char prodName[MAX_BUF];
@@ -54,7 +57,7 @@ void assist(connection* con) {
         } else if (strcmp(buf, END_OF_CONNECTION) == 0) {
             // Closing assistant
             // close(con)
-	       exit(0); 
+	       exit(0);
         }
     }
 }
@@ -68,7 +71,7 @@ int main(int argc, char *argv[]) {
 
     DBdata=malloc(sizeof(dbdata_t));
     connectDB(DBdata);
-    initializeUUID(1000000);
+    initializeUUID(10000);
 
 	gethostname(hostname,250);
 

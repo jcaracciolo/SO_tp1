@@ -1,5 +1,6 @@
 UUIDPath=./DB/UUID_DataBase
 DBPath=./DB/SQlite
+MARSHPath=./Marshalling
 
 #NamedPipes or Sockets
 com=NamedPipes
@@ -16,24 +17,25 @@ UUIDDBh= $(wildcard $(UUIDPath)/*.h)
 DB= $(wildcard $(DBPath)/*.c)
 DBh=  $(wildcard $(DBPath)/*.h)
 
-COMS= $(wildcard $(COMPath)/*.c) 
+COMS= $(wildcard $(COMPath)/*.c)
 COMSh= $(wildcard $(COMPath)/*.h)
+
+MARSH= $(wildcard $(MARSHPath)/*.c)
+MARSHh= $(wildcard $(MARSHPath)/*.h)
 
 OBJ= $(subst $(DBPath),.,$(DB:.c=.o))
 OBJ+= $(subst $(UUIDPath),.,$(UUIDDB:.cpp=.o))
 OBJ+= $(subst $(COMPath),.,$(COMS:.c=.o))
+OBJ+= $(subst $(MARSHPath),.,$(MARSH:.c=.o))
 OBJ+= server.o
 
 .PHONY: clean all
 
 all:
-	gcc -c $(DB) $(COMS) $(SERVER) $(DBh) $(COMSh) $(SERVERh) $(UUIDDBh) server.c server.h  
-	g++ -c $(UUIDDB) 
+	gcc -c $(DB) $(COMS) $(SERVER) $(DBh) $(MARSH) $(MARSHh)$(COMSh) $(SERVERh) $(UUIDDBh) server.c server.h
+	g++ -c $(UUIDDB)
 	g++ -o ./run $(OBJ)
 	rm *.o $(UUIDPath)/*.gch
 
 clean:
 	rm -f run
-
-	
-
