@@ -28,7 +28,7 @@ OBJ+= server.o
 
 all:
 	gcc -c $(DB) $(COMS) $(SERVER) $(DBh) $(COMSh) $(SERVERh) $(UUIDDBh) server.c server.h  
-	g++ -c $(UUIDDB)
+	g++ -c $(UUIDDB) 
 	g++ -o ./run $(OBJ)
 	rm *.o $(UUIDPath)/*.gch
 

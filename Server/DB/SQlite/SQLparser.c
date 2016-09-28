@@ -108,3 +108,38 @@ int changeValue(dbdata_t * dbData, char * prodName, int stock, int price) {
 
 	return 0;
 }
+
+void checkDBConnection(dbdata_t* DBdata){
+    char *msg = "create table hola(a int);insert into hola values(1);select * from hola;drop table hola;\n";
+    char *msgerror = "TEST;\n";
+    char str[200] = {0};
+
+    printf("Checking Database input...\n\n");
+
+    write(DBdata->fdin, msg, strlen(msg));
+
+    printf("Checking Database output...\n\n");
+    read(DBdata->fdout, str, 200);
+
+    if(strcmp(str,"create table hola(a int);\ninsert into hola values(1);\nselect * from hola;\n1\ndrop table hola;\n")!=0) {
+        printf("ERROR CONNECTING DATABASE I/O\n");
+        printf("READ: %s", str);
+        exit(1);
+    }
+
+    printf("Database I/O connection successful\n\n");
+
+    memset(str, 0, 200);
+    printf("Checking Database error output...\n\n");
+
+    write(DBdata->fdin, msgerror, strlen(msgerror));
+    read(DBdata->fdout, str, 200);
+
+    if(strcmp(str,"Error: near line 2: near \"TEST\": syntax error\n")!=0) {
+        printf("ERROR CONNECTING DATABASE ERROR OUTPUT\n");
+        printf("READ: %s", str);
+        exit(1);
+    }
+
+    printf("Database error output connection successful\n\n");
+}

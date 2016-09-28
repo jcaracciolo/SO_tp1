@@ -6,14 +6,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include "Coms/coms.h"
 #include "server.h"
 #include "DB/SQlite/SQLparser.h"
+#include "DB/UUID_DataBase/DB.h"
 
 #define PATHDBIN "/tmp/fifoDBserverIN"
 #define PATHDBOUT "/tmp/fifoDBserverOut"
 
 #define MAX_BUF 300
+
+dbdata_t* DBdata;
 
 void createChild(connection * con) {
 	int childPID;
@@ -26,14 +30,33 @@ void createChild(connection * con) {
 }
 
 void assist(connection* con) {
-	//
-	sendBytes(con,"Mensaje de hijo a cliente", 26);
-	char buf[300]={0};
-	while(buf[0] == 0){
-		receiveBytes(con,buf,300);
-	}
-	printf("%s\n", buf);
-	exit(0);
+    while (1) {
+        char buf[300]={0};
+        while (buf[0] == 0) {
+            receiveBytes(con,buf,300);
+        }
+
+        if (strncmp(buf, "get_price_of ", 13) == 0) {
+            char prodName[MAX_BUF];
+            char priceStr[MAX_BUF];
+            strcpy(prodName, buf+13);
+            int price = getPrice(DBdata, prodName);
+            sprintf(priceStr, "%i", price);
+        	sendBytes(con, priceStr, strlen(priceStr));
+
+        } else if (strncmp(buf, "get_stock_of ", 13) == 0) {
+            char prodName[MAX_BUF];
+            char priceStr[MAX_BUF];
+            strcpy(prodName, buf+13);
+            int price = getStock(DBdata, prodName);
+            sprintf(priceStr, "%i", price);
+            sendBytes(con, priceStr, strlen(priceStr));
+        } else if (strcmp(buf, END_OF_CONNECTION) == 0) {
+            // Closing assistant
+            // close(con)
+	       exit(0); 
+        }
+    }
 }
 
 
@@ -41,9 +64,12 @@ void assist(connection* con) {
 int main(int argc, char *argv[]) {
     char hostname[250];
     char buffer[250];
+    srand(0);
 
-    dbdata_t* DBdata=malloc(sizeof(dbdata_t));
+    DBdata=malloc(sizeof(dbdata_t));
     connectDB(DBdata);
+    initializeUUID(1000000);
+
 	gethostname(hostname,250);
 
 	strcpy(buffer,"12352.");
@@ -88,10 +114,12 @@ int connectDB(dbdata_t* DBdata){
         char* ar[3]={"sqlite3","-echo",NULL};
         execv("./DB/SQlite/sqlite3",ar);
     } else {
+        printf("Connecting Database...\n\n");
 
         DBdata->fdin = open(PATHDBIN,O_WRONLY);
         DBdata->fdout = open(PATHDBOUT,O_RDONLY);
 
+        checkDBConnection(DBdata);
         initializeDB(DBdata);
 
   //       int price = getPrice(DBdata, "papa");
@@ -111,6 +139,14 @@ int connectDB(dbdata_t* DBdata){
 
     return 0;
 
+}
 
-
+void initializeUUID(unsigned int n){
+    int i;
+    printf("Initializing UUID database...\n\n");
+    for(i=0;i<n;i++){
+        printf("\rIn progress [%.*s%*s] %.2f %%",(i+1)*30/n,"||||||||||||||||||||||||||||||||||||||||",30-(i+1)*30/n,"", (i*100.0)/n);
+        fflush(stdout);
+        UUIDadd(newUUID((uint64_t) random(),(uint64_t) random()));
+    }
 }
