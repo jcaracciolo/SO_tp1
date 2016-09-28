@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
-#include "../Server/Coms/coms.h"
+#include "Coms/coms.h"
 
 #define MAX_BUF 300
 
