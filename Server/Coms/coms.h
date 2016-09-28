@@ -1,6 +1,8 @@
 #ifndef COMS_H
 #define COMS_H
 
+#define END_OF_CONNECTION "KILLMEPLZ"
+
 typedef struct adress_t address;
 
 typedef struct connection_t connection;
@@ -12,5 +14,6 @@ int sendBytes(connection * con, char * buffer, int cant);
 connection * connectToAddres(char * addr);
 int openAdress(char * ip);
 connection * readNewConnection(int serverFD);
+void endConnection(connection * con);
 
 #endif
