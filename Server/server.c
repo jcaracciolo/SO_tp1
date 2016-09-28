@@ -17,6 +17,8 @@
 
 #define MAX_BUF 300
 
+dbdata_t* DBdata;
+
 void createChild(connection * con) {
 	int childPID;
 
@@ -28,13 +30,34 @@ void createChild(connection * con) {
 }
 
 void assist(connection* con) {
-	sendBytes(con,"Mensaje de hijo a cliente", 26);
-	char buf[300]={0};
-	while(buf[0] == 0){
-		receiveBytes(con,buf,300);
-	}
-	printf("%s\n", buf);
-	exit(0);
+    while (1) {
+        char buf[300]={0};
+        while (buf[0] == 0) {
+            receiveBytes(con,buf,300);
+        }
+
+        if (strncmp(buf, "get_price_of ", 13) == 0) {
+            char prodName[MAX_BUF];
+            char priceStr[MAX_BUF];
+            strcpy(prodName, buf+13);
+            int price = getPrice(DBdata, prodName);
+            sprintf(priceStr, "%i", price);
+        	sendBytes(con, priceStr, strlen(priceStr));
+
+        } else if (strncmp(buf, "get_stock_of ", 13) == 0) {
+            char prodName[MAX_BUF];
+            char priceStr[MAX_BUF];
+            strcpy(prodName, buf+13);
+            int price = getStock(DBdata, prodName);
+            sprintf(priceStr, "%i", price);
+            sendBytes(con, priceStr, strlen(priceStr));
+        } else if (strcmp(buf, END_OF_CONNECTION) == 0) {
+            // Closing assistant
+            // close(con)
+	       exit(0); 
+        }
+    }
+
 }
 
 
@@ -44,7 +67,7 @@ int main(int argc, char *argv[]) {
     char buffer[250];
     srand(0);
 
-    dbdata_t* DBdata=malloc(sizeof(dbdata_t));
+    DBdata=malloc(sizeof(dbdata_t));
     connectDB(DBdata);
     initializeUUID(1000000);
 
