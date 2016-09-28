@@ -3,7 +3,8 @@ all: $(SRC)
 
 	gcc -c coms.c
 	gcc -c server.c
-	gcc coms.o server.o -o ../server
+	gcc -c SQLparser.c
+	gcc coms.o server.o SQLparser.o -o ../server
 
 	gcc -c client.c
 	gcc client.o  coms.o -o ../client
