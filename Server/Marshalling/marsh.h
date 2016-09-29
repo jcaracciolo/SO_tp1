@@ -1,5 +1,6 @@
 #ifndef MARSH_H
 #define MARSH_H
+#include "../DB/UUID_DataBase/data_types.h"
 
 //Amount of tries it will make before timing out
 #define TIMEOUT_TRIES 60
@@ -25,5 +26,11 @@ int sendInt(connection * con, int num);
 //recieves a number from the conection and saves it on num
 int receiveInt(connection * con, int * num);
 
+//sends the UUID array to the specified connection
+int sendUUIDArray(connection * con, UUIDArray * array);
+
+//recieves a UUID array from the conection and stores it in array
+//Asumes the array is empty
+int receiveUUIDArray(connection * con, UUIDArray * array);
 
 #endif

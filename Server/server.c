@@ -30,35 +30,59 @@ void createChild(connection * con) {
 	}
 }
 
+void attPriceTransaction(connection * con){
+		printf("Attending price\n");
+		char prodName[MAX_PROD_NAME_LENGHT];
+		sendInt(con,9); //TODO replace with ack
+		receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
+		// printf("prodName: %s\n",prodName);
+		int price = getPrice(DBdata, prodName);
+		// printf("price: %d\n",price);
+		sendInt(con, price);
+}
+
+void attStockTransaction(connection * con){
+		printf("Attending stock\n");
+		char prodName[MAX_PROD_NAME_LENGHT];
+		sendInt(con,9); //TODO replace with ack
+		receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
+		int stock = getPrice(DBdata, prodName);
+		sendInt(con, stock);
+}
+
 void assist(connection* con) {
     while (1) {
-        char buf[300]={0};
-        while (buf[0] == 0) {
-            receiveBytes(con,buf,300);
-        }
-				printf("%s thsi %d\n",buf,3);
-				sendInt(con, 76);
 
-        if (strncmp(buf, "get_price_of ", 13) == 0) {
-            char prodName[MAX_BUF];
-            char priceStr[MAX_BUF];
-            strcpy(prodName, buf+13);
-            int price = getPrice(DBdata, prodName);
-            sprintf(priceStr, "%i", price);
-        	sendBytes(con, priceStr, strlen(priceStr));
+				printf("Starting\n");
+				int transactionType;
+				receiveInt(con, &transactionType);
+				printf("Attending %d\n",transactionType);
+				switch (transactionType) {
+					case PRICE:
+							attPriceTransaction(con);
+							break;
+					case STOCK:
+							attStockTransaction(con);
+							break;
+					case CLOSE:
+							printf("finished transaction\n");
+							// Closing assistant
+							// close(con)
+							exit(0);
 
-        } else if (strncmp(buf, "get_stock_of ", 13) == 0) {
-            char prodName[MAX_BUF];
-            char priceStr[MAX_BUF];
-            strcpy(prodName, buf+13);
-            int price = getStock(DBdata, prodName);
-            sprintf(priceStr, "%i", price);
-            sendBytes(con, priceStr, strlen(priceStr));
-        } else if (strcmp(buf, END_OF_CONNECTION) == 0) {
-            // Closing assistant
-            // close(con)
-	       exit(0);
-        }
+				}
+				// printf("%s thsi %d\n",buf,3);
+
+				// UUIDArray uuarr;
+				// uuarr.uuids[0].high = 1111111;
+				// uuarr.uuids[1].high = 222222222;
+				// uuarr.uuids[0].low = 3333333;
+				// uuarr.uuids[1].low = 5555555;
+				// uuarr.size = 2;
+				//
+				// sendUUIDArray(con, &uuarr);
+
+
     }
 }
 

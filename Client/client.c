@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "../Server/Marshalling/marsh.h"
+#include "../Server/DB/UUID_DataBase/data_types.h"
 
 #define END_OF_CONNECTION "KILLMEPLZ"
 
@@ -14,36 +15,36 @@
 int main() {
 	char hostname[250];
 	char buffer[250];
-	char temp[250];
-	int asd;
+	// char temp[250];
+
 	gethostname(hostname,250);
 	strcpy(buffer,"12352.");
 	strcat(buffer,hostname);
 	connection * con = connect(buffer);
+	// sendString(con, "g");
+	// UUIDArray arr;
+	// receiveUUIDArray(con, &arr);
+	// sprintf(temp, "High: %llu Low: %llu Size: %d LD/n",
+	// 				arr.uuids[0].high,arr.uuids[0].low,arr.size);
+	// puts(temp);
+
 
 	puts("Price of papa?");
-	sendString(con, "get_price_of papa");
-	receiveInt(con, &asd );
-	sprintf(temp, "the numb is: %d LD/n",asd);
-	puts(temp);
-
-	char buf[MAX_BUF]={0};
-	while(buf[0] == 0){
-		receiveString(con,buf,MAX_BUF);
-	}
-	printf("%s\n", buf);
+	int pricePapa;
+	sendInt(con, PRICE);
+	receiveInt(con,&pricePapa); //TODO: replace with ack
+	sendString(con, "papa\0");
+	receiveInt(con,&pricePapa);
+	printf("%d\n", pricePapa);
 
 	puts("Stock of papa?");
-	sendString(con, "get_stock_of papa");
+	sendInt(con, STOCK);
+	receiveInt(con,&pricePapa); //TODO: replace with ack
+	sendString(con, "papa");
+	int stockPapa;
+	receiveInt(con,&stockPapa);
+	printf("%d\n", stockPapa);
 
-	buf[0] = 0;
-	while(buf[0] == 0){
-		receiveString(con,buf,MAX_BUF);
-	}
+	sendInt(con, CLOSE);
 
-	sendString(con, END_OF_CONNECTION);
-
-	printf("%s\n",buf);
-
-	sendString(con, "String mandado por cliente\0");
 }

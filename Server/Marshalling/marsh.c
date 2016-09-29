@@ -3,9 +3,7 @@
 #include <strings.h>
 #include <string.h>
 #include "marsh.h"
-#include "data_types.h"
 #include "../Coms/coms.h"
-////ASADADASDASDSDSDAadasdasdsadasadssad
 
 //connects to an address ej: "192.168.13"
 //returns NULL if it couldnt connect
@@ -20,9 +18,13 @@ int sendString(connection * con,char * str){
 }
 
 //stores the string in buff, maximum len characters, including \0
-//Non blocking
+//busy blockings
 int receiveString(connection * con,char * buf, int lenght){
-    receiveBytes(con, buf,lenght);
+    if(lenght > 0) buf[0] = 0;
+    else return -1;
+    while (buf[0] == 0) {
+      receiveBytes(con, buf,lenght);
+    }
     return 0;
 }
 
@@ -42,5 +44,22 @@ int receiveInt(connection * con, int * num){
       receiveBytes(con, numHolder,sizeof(num));
     }
     memcpy(num, numHolder, sizeof(num));
+    return 0;
+}
+
+int sendUUIDArray(connection * con, UUIDArray * array){
+  char  numHolder[sizeof(UUIDArray)];
+  memcpy(numHolder, array, sizeof(UUIDArray));
+  sendBytes(con, numHolder, sizeof(UUIDArray));
+  return 0;
+
+}
+
+int receiveUUIDArray(connection * con, UUIDArray * array){
+    char  numHolder[sizeof(UUIDArray)] = {0};
+    while (numHolder[0] == 0) {
+      receiveBytes(con, numHolder,sizeof(UUIDArray));
+    }
+    memcpy(array, numHolder, sizeof(UUIDArray));
     return 0;
 }

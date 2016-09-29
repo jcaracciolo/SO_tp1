@@ -2,14 +2,10 @@
 // Created by juanfra on 12/09/16.
 //
 #include <stdint.h>
+#include "data_types.h"
 
 #ifndef SO_TP1_DB_H
 #define SO_TP1_DB_H
-
-typedef struct{
-    uint64_t  high;
-    uint64_t  low;
-} UUID;
 
 UUID newUUID(uint64_t high,uint64_t low);
 
