@@ -41,6 +41,8 @@ int main() {
 	stockPapa=receiveInt(con);
 	printf("%d\n", stockPapa);
 
+    puts("SENDING SELL");
+    sendInt(con, SELL);
 	sendInt(con, CLOSE);
     endConnection(con);
 

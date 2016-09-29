@@ -34,7 +34,7 @@ OBJ+= server.o
 all:
 	gcc -c $(DB) $(COMS) $(SERVER) $(DBh) $(MARSH) $(MARSHh) $(COMSh) $(SERVERh) $(UUIDDBh) server.c server.h
 	g++ -c $(UUIDDB)
-	g++ -o ./run $(OBJ)
+	g++ -o ./run $(OBJ) -pthread
 	rm *.o $(UUIDPath)/*.gch
 
 clean:

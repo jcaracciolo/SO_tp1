@@ -21,7 +21,6 @@
 #define UUID_CANT 100
 
 dbdata_t* DBdata;
-pthread_t tid[2];
 
 
 void createChild(connection * con) {
@@ -53,11 +52,18 @@ void attStockTransaction(connection * con){
 		int stock = getPrice(DBdata, prodName);
 		sendInt(con, stock);
 }
+int validateUUID(char* arg){
+
+    printf("THIS THREAD SAID: %s\n",arg);
+    return 1;
+}
 
 void assist(connection* con) {
     while (1) {
 
 				//printf("Starting\n");
+                pthread_t UUIDthread;
+                int err;
 				int transactionType=receiveInt(con);
 				if(transactionType!=0) printf("Attending %d\n",transactionType);
 				switch (transactionType) {
@@ -67,6 +73,15 @@ void assist(connection* con) {
 					case STOCK:
 							attStockTransaction(con);
 							break;
+                    case SELL:
+                            err = pthread_create(&(UUIDthread), NULL, &validateUUID, "HOLA");
+                            if(err!=0){
+                                //TODO make something
+                            }
+                            int ret;
+                            pthread_join(UUIDthread,&ret);
+                            printf("thread done %d\n",ret);
+                            break;
 					case CLOSE:
 							printf("finished transaction\n");
                             endConnection(con);
@@ -90,9 +105,7 @@ void assist(connection* con) {
     }
 }
 
-void* validateMsg(){
 
-}
 
 int main(int argc, char *argv[]) {
     char hostname[MAX_BUF];
@@ -168,7 +181,7 @@ void initializeUUID(unsigned int n){
     int i;
     printf("Initializing UUID database...\n\n");
     for(i=0;i<n;i++){
-        printf("\rIn progress [%.*s%*s] %.2f %%",(i+1)*30/n,"||||||||||||||||||||||||||||||||||||||||",30-(i+1)*30/n,"", (i*100.0)/n+1);
+        printf("\rIn progress [%.*s%*s] %.2f %%",(i+1)*30/n,"||||||||||||||||||||||||||||||||||||||||",30-(i+1)*30/n,"", (i*100.0)/n);
         fflush(stdout);
         UUIDadd(newUUID((uint64_t) random(),(uint64_t) random()));
     }
