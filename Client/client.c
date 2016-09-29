@@ -14,35 +14,64 @@
 
 
 int main() {
-	char hostname[MAX_BUF];
-	char buffer[MAX_BUF];
+    char hostname[MAX_BUF];
+    char buffer[MAX_BUF];
 
 
-	gethostname(hostname,MAX_BUF);
+    gethostname(hostname, MAX_BUF);
 
-	gethostname(hostname,250);
-	strcpy(buffer,"12352.");
-	strcat(buffer,hostname);
-	connection * con = connectToAddres(buffer);
+    gethostname(hostname, 250);
+    strcpy(buffer, "12352.");
+    strcat(buffer, hostname);
+    connection *con = connectToAddres(buffer);
 
-	puts("Price of papa?");
-	int pricePapa;
-	sendInt(con, PRICE);
-	pricePapa=receiveInt(con); //TODO: replace with ack
-	sendString(con, "papa\0");
-	pricePapa=receiveInt(con);
-	printf("%d\n", pricePapa);
+    puts("Price of papa?");
+    int pricePapa;
+    sendInt(con, PRICE);
+    int ackn = receiveInt(con); //TODO: replace with ack
+    puts("dadsada");
+    if(ackn!=ACKNOWLEDGE){
+        puts("ERROR");
+        exit(1);
+    }
+    sendString(con, "papa\0");
+    pricePapa = receiveInt(con);
+    printf("%d\n", pricePapa);
 
-	puts("Stock of papa?");
-	sendInt(con, STOCK);
-	pricePapa=receiveInt(con); //TODO: replace with ack
-	sendString(con, "papa");
-	int stockPapa;
-	stockPapa=receiveInt(con);
-	printf("%d\n", stockPapa);
+    sendInt(con,BUY);
+    ackn = receiveInt(con); //TODO: replace with ack
+    if(ackn!=ACKNOWLEDGE){
+        puts("ERROR");
+        exit(1);
+    }
 
-    puts("SENDING SELL");
-    sendInt(con, SELL);
+    sendString(con, "papa\0");
+    ackn = receiveInt(con); //TODO: replace with ack
+    if(ackn!=ACKNOWLEDGE){
+        puts("ERROR");
+        exit(1);
+    }
+
+
+    sendInt(con,2);
+    ackn = receiveInt(con); //TODO: replace with ack
+    if(ackn!=ACKNOWLEDGE){
+        puts("ERROR");
+        exit(1);
+    }
+
+    sendInt(con,3*pricePapa);
+
+    int cost;
+    UUIDStock *ans=receiveUUIDArray(con,2,&cost);
+
+    for(int i=0;i<ans->last;i++){
+        printf("%ld - %ld\n",ans->uuids[i].high,ans->uuids[i].low);
+    }
+    printf("%d\n",cost);
+
+    puts("END TRANSACTION");
+
 	sendInt(con, CLOSE);
     endConnection(con);
 

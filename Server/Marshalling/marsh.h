@@ -29,7 +29,7 @@ int sendUUIDArray(connection * con, UUIDArray * array);
 
 //recieves a UUID array from the conection and stores it in array
 //Asumes the array is empty
-int receiveUUIDArray(connection * con, UUIDArray * array);
+UUIDStock* receiveUUIDArray(connection * con,int n,int* cost);
 
 
 #endif

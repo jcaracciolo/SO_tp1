@@ -33,21 +33,26 @@ int sendInt(connection * con, int num){
 int receiveInt(connection * con){
     char numHolder[sizeof(int)] = {0};
     receiveBytes(con, numHolder,sizeof(int));
-    return (int)(numHolder[0]);
+    return *(int*)(numHolder);
 }
 
 int sendUUIDArray(connection * con, UUIDArray * array){
-  char  numHolder[sizeof(UUIDArray)];
-  memcpy(numHolder, array, sizeof(UUIDArray));
-  sendBytes(con, numHolder, sizeof(UUIDArray));
+  sendBytes(con,(char*)array->uuids, sizeof(UUID)*array->size);
   return 0;
 
 }
 
 
-int receiveUUIDArray(connection * con, UUIDArray * array){
-    char  numHolder[sizeof(UUIDArray)] = {0};
-    receiveBytes(con, numHolder,sizeof(UUIDArray));
-    memcpy(array, numHolder, sizeof(UUIDArray));
-    return 0;
+UUIDStock* receiveUUIDArray(connection * con, int n,int* cost){
+    UUIDStock* ans=malloc(sizeof(UUIDStock));
+    ans->uuids=malloc(sizeof(UUID)*n);
+
+    int read=receiveBytes(con,(char*)ans->uuids,sizeof(UUID)*n);
+    ans->size=n;
+    ans->last=read/sizeof(UUID);
+
+    sendInt(con,ACKNOWLEDGE);
+    *cost=receiveInt(con);
+
+    return ans;
 }

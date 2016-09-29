@@ -36,12 +36,45 @@ void createChild(connection * con) {
 void attPriceTransaction(connection * con){
 		printf("Attending price\n");
 		char prodName[MAX_PROD_NAME_LENGHT];
-		sendInt(con,9); //TODO replace with ack
+
+		sendInt(con,ACKNOWLEDGE);
 		receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
-		// printf("prodName: %s\n",prodName);
+
 		int price = getPrice(DBdata, prodName);
-		// printf("price: %d\n",price);
 		sendInt(con, price);
+}
+
+void attBuyTransaction(connection * con){
+    printf("Attending purchase\n");
+    char prodName[MAX_PROD_NAME_LENGHT];
+
+    sendInt(con,ACKNOWLEDGE);
+
+    receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
+
+    int amount;
+    sendInt(con,ACKNOWLEDGE);
+    amount=receiveInt(con);
+
+    int maxPay;
+    sendInt(con,ACKNOWLEDGE);
+    maxPay=receiveInt(con);
+
+    //TODO mutex, if max pay>cancel
+    //TODO get from DB
+    //TODO thread get from UUID
+
+    UUIDArray msg;
+    for(int i=0;i<amount;i++){
+        msg.uuids[i]=getRandomUUID();
+    }
+    msg.size=amount;
+
+
+    sendUUIDArray(con,&msg);
+    receiveInt(con);
+    sendInt(con,amount*3);
+
 }
 
 void attStockTransaction(connection * con){
@@ -61,35 +94,40 @@ int validateUUID(char* arg){
 void assist(connection* con) {
     while (1) {
 
-				//printf("Starting\n");
                 pthread_t UUIDthread;
                 int err;
 				int transactionType=receiveInt(con);
-				if(transactionType!=0) printf("Attending %d\n",transactionType);
-				switch (transactionType) {
-					case PRICE:
-							attPriceTransaction(con);
-							break;
-					case STOCK:
-							attStockTransaction(con);
-							break;
-                    case SELL:
+                    switch (transactionType) {
+                        case PRICE:
+                            attPriceTransaction(con);
+                            break;
+                        case STOCK:
+                            attStockTransaction(con);
+                            break;
+                        case SELL:
                             err = pthread_create(&(UUIDthread), NULL, &validateUUID, "HOLA");
-                            if(err!=0){
+                            if (err != 0) {
                                 //TODO make something
                             }
                             int ret;
-                            pthread_join(UUIDthread,&ret);
-                            printf("thread done %d\n",ret);
+                            pthread_join(UUIDthread, &ret);
+                            printf("thread done %d\n", ret);
                             break;
-					case CLOSE:
-							printf("finished transaction\n");
+                        case BUY:
+                            attBuyTransaction(con);
+                            break;
+                        case CLOSE:
+                            printf("finished transaction\n");
                             endConnection(con);
-							// Closing assistant
-							// close(con)
-							exit(0);
+                            // Closing assistant
+                            // close(con)
+                            exit(0);
+                        default:
+                            printf("CLIENT PID %d\n\n", transactionType);
+                            break;
 
-				}
+                    }
+
 				// printf("%s thsi %d\n",buf,3);
 
 				// UUIDArray uuarr;
@@ -104,7 +142,6 @@ void assist(connection* con) {
 
     }
 }
-
 
 
 int main(int argc, char *argv[]) {

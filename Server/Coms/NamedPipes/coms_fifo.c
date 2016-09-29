@@ -90,20 +90,20 @@ int openAdress(char * addr) {
 
 connection * readNewConnection(int fd) {
 	struct pollfd poll_list[2];
-	connection * con = malloc(sizeof(connection));
-	con->inPath = calloc(MAX_BUF, 1);
-	con->outPath = calloc(MAX_BUF, 1);
 
     poll_list[0].fd = fd;
     poll_list[0].events = POLLIN;
-
     // poll checks if something was sent to fd
 	int readSmth = poll(poll_list, (unsigned long) 1, 10);
 	if(readSmth == 0) {
 		return NULL;
 	}
+    connection * con = malloc(sizeof(connection));
+    con->inPath = calloc(MAX_BUF, 1);
+    con->outPath = calloc(MAX_BUF, 1);
 
-	char buf[MAX_BUF];
+
+    char buf[MAX_BUF];
 	buf[0] = 0;
 
 	read(fd, buf, MAX_BUF);
@@ -125,13 +125,11 @@ connection * readNewConnection(int fd) {
 }
 
 int sendBytes(connection * con, char * buffer, int len) {
-	write(con->outFD, buffer, len);
-	return 0;
+	return write(con->outFD, buffer, len);
 }
 
 int receiveBytes(connection * con, char * buffer, int length) {
-	read(con->inFD, buffer, length);
-	return 0;
+	return read(con->inFD, buffer, length);
 }
 
 void endConnection(connection * con) {	
