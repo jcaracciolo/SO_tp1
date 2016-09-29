@@ -13,6 +13,11 @@
 
 
 int main() {
+	char hostname[MAX_BUF];
+	char buffer[MAX_BUF];
+	char temp[MAX_BUF];
+
+	gethostname(hostname,MAX_BUF);
 	char hostname[250];
 	char buffer[250];
 	// char temp[250];
@@ -21,13 +26,6 @@ int main() {
 	strcpy(buffer,"12352.");
 	strcat(buffer,hostname);
 	connection * con = connect(buffer);
-	// sendString(con, "g");
-	// UUIDArray arr;
-	// receiveUUIDArray(con, &arr);
-	// sprintf(temp, "High: %llu Low: %llu Size: %d LD/n",
-	// 				arr.uuids[0].high,arr.uuids[0].low,arr.size);
-	// puts(temp);
-
 
 	puts("Price of papa?");
 	int pricePapa;

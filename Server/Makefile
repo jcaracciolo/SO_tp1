@@ -32,7 +32,7 @@ OBJ+= server.o
 .PHONY: clean all
 
 all:
-	gcc -c $(DB) $(COMS) $(SERVER) $(DBh) $(MARSH) $(MARSHh)$(COMSh) $(SERVERh) $(UUIDDBh) server.c server.h
+	gcc -c $(DB) $(COMS) $(SERVER) $(DBh) $(MARSH) $(MARSHh) $(COMSh) $(SERVERh) $(UUIDDBh) server.c server.h
 	g++ -c $(UUIDDB)
 	g++ -o ./run $(OBJ)
 	rm *.o $(UUIDPath)/*.gch
