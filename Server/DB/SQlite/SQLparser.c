@@ -92,13 +92,13 @@ int getStock(dbdata_t * dbData, char * prodName) {
 	
 }
 
-int updatePrice(dbdata_t dbData, char * prodName, int price) {
+int updatePrice(dbdata_t * dbData, char * prodName, int price) {
     char str[MAX_BUFF] = {0};
     int stock = getStock(dbData, prodName);
     int nameLen = strlen(prodName);
-    char * query = calloc(nameLen + 55 + 20,1); // query + name + stock + price '\n'    (numbers must have less than 10 digits)
+    char * query = calloc(nameLen + 57 + 20,1); // query + name + stock + price '\n'    (numbers must have less than 10 digits)
 
-    sprintf(query, "update product set stock = %i, price = %i where name = %s;\n", stock, price, prodName);
+    sprintf(query, "update product set stock = %i, price = %i where name = '%s';\n", stock, price, prodName);
 
     write(dbData->fdin, query, strlen(query));
 
@@ -112,17 +112,17 @@ int updatePrice(dbdata_t dbData, char * prodName, int price) {
     return 0;
 }
 
-int updateStock(dbdata_t dbData, char * prodName, int stock) {
+int updateStock(dbdata_t * dbData, char * prodName, int stock) {
     char str[MAX_BUFF] = {0};
-    int price = getPrice(dbData, prodName);
     int nameLen = strlen(prodName);
-    char * query = calloc(nameLen + 55 + 20,1); // query + name + stock + price '\n'    (numbers must have less than 10 digits)
+    char * query = calloc(nameLen + 57 + 20, 1); // query + name + stock + price '\n'    (numbers must have less than 10 digits)
 
-    sprintf(query, "update product set stock = %i, price = %i where name = %s;\n", stock, price, prodName);
+    sprintf(query, "update product set stock = %i where name = '%s';\n", stock, prodName);
 
     write(dbData->fdin, query, strlen(query));
 
     read(dbData->fdout, str, MAX_BUFF);
+    printf("%s",str);
     if (strncmp(str, query, strlen(query)) != 0) {
         return -1;
     }

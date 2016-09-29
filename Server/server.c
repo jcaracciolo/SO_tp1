@@ -67,7 +67,10 @@ void attBuyTransaction(connection * con){
     int price = getPrice(DBdata, prodName);
     int stock = getStock(DBdata, prodName);
     if (price * amount <= maxPay && stock >= amount) {
+            printf("amount: %i\n", amount);
+            printf("old Stock: %i\n", stock);
             updateStock(DBdata, prodName, stock - amount);
+            printf("New Stock: %i\n", getStock(DBdata, prodName));
             buyRealised = 1;     
     }
 
@@ -90,9 +93,9 @@ void attBuyTransaction(connection * con){
 void attStockTransaction(connection * con){
 		printf("Attending stock\n");
 		char prodName[MAX_PROD_NAME_LENGHT];
-		sendInt(con,9); //TODO replace with ack
+		sendInt(con,ACKNOWLEDGE); //TODO replace with ack
 		receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
-		int stock = getPrice(DBdata, prodName);
+		int stock = getStock(DBdata, prodName);
 		sendInt(con, stock);
 }
 int validateUUID(char* arg){

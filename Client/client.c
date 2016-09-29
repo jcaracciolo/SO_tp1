@@ -29,7 +29,6 @@ int main() {
     int pricePapa;
     sendInt(con, PRICE);
     int ackn = receiveInt(con); //TODO: replace with ack
-    puts("dadsada");
     if(ackn!=ACKNOWLEDGE){
         puts("ERROR");
         exit(1);
@@ -37,6 +36,18 @@ int main() {
     sendString(con, "papa\0");
     pricePapa = receiveInt(con);
     printf("%d\n", pricePapa);
+
+    puts("Stock of papa?");
+    int onestock;
+    sendInt(con, STOCK);
+    ackn = receiveInt(con); //TODO: replace with ack
+    if(ackn!=ACKNOWLEDGE){
+        puts("ERROR");
+        exit(1);
+    }
+    sendString(con, "papa\0");
+    onestock = receiveInt(con);
+    printf("first stock %d\n", onestock);
 
     sendInt(con,BUY);
     ackn = receiveInt(con); //TODO: replace with ack
@@ -69,6 +80,18 @@ int main() {
         printf("%ld - %ld\n",ans->uuids[i].high,ans->uuids[i].low);
     }
     printf("%d\n",cost);
+
+     puts("Stock of papa?");
+    int secondstock;
+    sendInt(con, STOCK);
+    ackn = receiveInt(con); //TODO: replace with ack
+    if(ackn!=ACKNOWLEDGE){
+        puts("ERROR");
+        exit(1);
+    }
+    sendString(con, "papa\0");
+    secondstock = receiveInt(con);
+    printf("second stock %d\n", secondstock);
 
     puts("END TRANSACTION");
 
