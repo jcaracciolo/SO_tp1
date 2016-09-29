@@ -72,7 +72,9 @@ void attBuyTransaction(connection * con){
         //TODO make something
     }
 
-    sem_wait(&semid);
+    sem_t* semid=sem_open(addrname,0);
+    sem_wait(semid);
+
     //TODO get from DB
     short buyRealised = 0;
     int price = getPrice(DBdata, prodName);
@@ -86,7 +88,9 @@ void attBuyTransaction(connection * con){
     }
 
     //TODO thread get from UUID
-    sem_post(&semid);
+    sem_post(semid);
+
+    puts("dasdmoask");
 
     int ret;
     pthread_join(UUIDthread, &ret);
@@ -101,13 +105,10 @@ void attBuyTransaction(connection * con){
 }
 
 int getNUUID(UUIDArray* tofill){
-    printf("sdasdasds\n" );
-    
     for(int i=0;i<tofill->size;i++){
         tofill->uuids[i]=getRandomUUID();
     }
     return 0;
-
 }
 
 void attStockTransaction(connection * con){
@@ -195,17 +196,12 @@ int main(int argc, char *argv[]) {
     strcpy(addrname,"12352.");
     strcat(addrname,"localhost");
 
-    sem=sem_open(addrname,O_CREAT,0600,0);
+    sem=sem_open(addrname,O_CREAT,0600,1);
+
     if(sem==SEM_FAILED){
         perror("Error initializing synchronization");
         exit(1);
     }
-    if( sem_init(&sem,1,1) < 0)
-    {
-        perror("Error initializing synchronization");
-        exit(1);
-    }
-
 
 	int serverFD = openAdress(addrname);
 	if (serverFD < 0) {
