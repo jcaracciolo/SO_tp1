@@ -10,7 +10,6 @@
 #include <pthread.h>
 #include "Coms/coms.h"
 #include "server.h"
-#include "DB/SQlite/SQLparser.h"
 #include "DB/UUID_DataBase/DB.h"
 #include "Marshalling/marsh.h"
 
@@ -67,7 +66,7 @@ void attBuyTransaction(connection * con){
     tdata.size=amount;
     pthread_t UUIDthread;
 
-    int err = pthread_create(&(UUIDthread), NULL, &getNUUID, &tdata);
+    int err = pthread_create(&(UUIDthread), NULL, &getNUUID, (void *)&tdata);
     if (err != 0) {
         //TODO make something
     }

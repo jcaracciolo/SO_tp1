@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "../Server/Coms/coms.h"
 #include "../Server/Marshalling/marsh.h"
 #include "../Server/DB/UUID_DataBase/data_types.h"
