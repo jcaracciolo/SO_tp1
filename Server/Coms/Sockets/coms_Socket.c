@@ -120,7 +120,6 @@ int receiveBytes(connection * con, char * buffer, int len) {
 	return read(con->sockFD, buffer, len);
 }
 
-void endConnection(connection * con) {	
-	sendBytes(con, END_OF_CONNECTION, strlen(END_OF_CONNECTION));
-	//close(con) <--- Falta hacer
+void endConnection(connection * con) {
+	close(con->sockFD);
 }

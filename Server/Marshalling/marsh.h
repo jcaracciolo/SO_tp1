@@ -14,8 +14,6 @@ typedef struct connection_t connection;
 //Sends a null terminated string to the specified address
 int sendString(connection * con,char * str);
 
-//connects to an address ej: "192.168.13"
-connection * connect(char * addr);
 
 //stores the string in buff, maximum len characters, including \0
 int receiveString(connection * con,char * buf, int lenght);
@@ -24,7 +22,7 @@ int receiveString(connection * con,char * buf, int lenght);
 int sendInt(connection * con, int num);
 
 //recieves a number from the conection and saves it on num
-int receiveInt(connection * con, int * num);
+int receiveInt(connection * con);
 
 //sends the UUID array to the specified connection
 int sendUUIDArray(connection * con, UUIDArray * array);
@@ -32,5 +30,6 @@ int sendUUIDArray(connection * con, UUIDArray * array);
 //recieves a UUID array from the conection and stores it in array
 //Asumes the array is empty
 int receiveUUIDArray(connection * con, UUIDArray * array);
+
 
 #endif

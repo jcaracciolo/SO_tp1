@@ -57,10 +57,9 @@ void attStockTransaction(connection * con){
 void assist(connection* con) {
     while (1) {
 
-				printf("Starting\n");
-				int transactionType;
-				receiveInt(con, &transactionType);
-				printf("Attending %d\n",transactionType);
+				//printf("Starting\n");
+				int transactionType=receiveInt(con);
+				if(transactionType!=0) printf("Attending %d\n",transactionType);
 				switch (transactionType) {
 					case PRICE:
 							attPriceTransaction(con);
@@ -70,6 +69,7 @@ void assist(connection* con) {
 							break;
 					case CLOSE:
 							printf("finished transaction\n");
+                            endConnection(con);
 							// Closing assistant
 							// close(con)
 							exit(0);

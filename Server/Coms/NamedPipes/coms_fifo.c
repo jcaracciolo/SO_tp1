@@ -135,6 +135,7 @@ int receiveBytes(connection * con, char * buffer, int length) {
 }
 
 void endConnection(connection * con) {	
-	sendBytes(con, END_OF_CONNECTION, strlen(END_OF_CONNECTION));
+	close(con->inFD);
+	close(con->outFD);
 	//close(con) <--- Falta hacer
 }

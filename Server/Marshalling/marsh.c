@@ -5,12 +5,6 @@
 #include "marsh.h"
 #include "../Coms/coms.h"
 
-//connects to an address ej: "192.168.13"
-//returns NULL if it couldnt connect
-connection * connect(char * addr){
-    return connectToAddres(addr);
-}
-
 //Sends a null terminated string to the specified connection
 int sendString(connection * con,char * str){
     sendBytes(con, str, strlen(str)+1);
@@ -36,11 +30,10 @@ int sendInt(connection * con, int num){
 
 //recieves a number from the conection and saves it on num
 //Its blocking
-int receiveInt(connection * con, int * num){
-    char  numHolder[sizeof(num)] = {0};
-    receiveBytes(con, numHolder,sizeof(num));
-    memcpy(num, numHolder, sizeof(num));
-    return 0;
+int receiveInt(connection * con){
+    char numHolder[sizeof(int)] = {0};
+    receiveBytes(con, numHolder,sizeof(int));
+    return (int)(numHolder[0]);
 }
 
 int sendUUIDArray(connection * con, UUIDArray * array){
@@ -50,6 +43,7 @@ int sendUUIDArray(connection * con, UUIDArray * array){
   return 0;
 
 }
+
 
 int receiveUUIDArray(connection * con, UUIDArray * array){
     char  numHolder[sizeof(UUIDArray)] = {0};
