@@ -89,6 +89,7 @@ void attBuyTransaction(connection * con){
 
     //TODO thread get from UUID
     sem_post(semid);
+    sem_close(semid);
 
     puts("dasdmoask");
 
