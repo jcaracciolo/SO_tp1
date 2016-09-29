@@ -17,7 +17,7 @@ int getPrice(dbdata_t * dbData, char * prodName);
 
 int getStock(dbdata_t * dbData, char * prodName);
 
-int changeValue(dbdata_t * dbData, char * prodName, int stock, int price);
+int updateTable(dbdata_t * dbData, char * prodName, int stock, int price);
 
 int exitDB(dbdata_t * dbData);
 

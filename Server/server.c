@@ -61,7 +61,17 @@ void attBuyTransaction(connection * con){
     maxPay=receiveInt(con);
 
     //TODO mutex, if max pay>cancel
+
     //TODO get from DB
+    short buyRealised = 0;
+    int price = getPrice(DBdata, prodName);
+    int stock = getStock(DBdata, prodName);
+    if (price * amount <= maxPay && stock >= amount) {
+            updateStock(DBdata, prodName, stock - amount);
+            buyRealised = 1;     
+    }
+
+
     //TODO thread get from UUID
 
     UUIDArray msg;

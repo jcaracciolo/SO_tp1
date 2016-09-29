@@ -132,7 +132,7 @@ int updateStock(dbdata_t dbData, char * prodName, int stock) {
     return 0;
 }
 
-int changeValue(dbdata_t * dbData, char * prodName, int stock, int price) {	
+int updateTable(dbdata_t * dbData, char * prodName, int stock, int price) {	
 	char str[MAX_BUFF] = {0};
 	int nameLen = strlen(prodName);
 	char * query = calloc(nameLen + 55 + 20, 1); // query + name + stock + price '\n'	(numbers must have less than 10 digits)
