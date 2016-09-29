@@ -30,3 +30,6 @@
 
 CMakeLists.txt
 .idea
+
+./Cliente/client
+./Server/run
