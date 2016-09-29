@@ -168,7 +168,7 @@ void initializeUUID(unsigned int n){
     int i;
     printf("Initializing UUID database...\n\n");
     for(i=0;i<n;i++){
-        printf("\rIn progress [%.*s%*s] %.2f %%",(i+1)*30/n,"||||||||||||||||||||||||||||||||||||||||",30-(i+1)*30/n,"", (i*100.0)/n);
+        printf("\rIn progress [%.*s%*s] %.2f %%",(i+1)*30/n,"||||||||||||||||||||||||||||||||||||||||",30-(i+1)*30/n,"", (i*100.0)/n+1);
         fflush(stdout);
         UUIDadd(newUUID((uint64_t) random(),(uint64_t) random()));
     }

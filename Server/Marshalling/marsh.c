@@ -22,9 +22,7 @@ int sendString(connection * con,char * str){
 int receiveString(connection * con,char * buf, int lenght){
     if(lenght > 0) buf[0] = 0;
     else return -1;
-    while (buf[0] == 0) {
       receiveBytes(con, buf,lenght);
-    }
     return 0;
 }
 
@@ -41,7 +39,6 @@ int sendInt(connection * con, int num){
 int receiveInt(connection * con, int * num){
     char  numHolder[sizeof(num)] = {0};
     receiveBytes(con, numHolder,sizeof(num));
-
     memcpy(num, numHolder, sizeof(num));
     return 0;
 }
@@ -56,9 +53,7 @@ int sendUUIDArray(connection * con, UUIDArray * array){
 
 int receiveUUIDArray(connection * con, UUIDArray * array){
     char  numHolder[sizeof(UUIDArray)] = {0};
-    while (numHolder[0] == 0) {
-      receiveBytes(con, numHolder,sizeof(UUIDArray));
-    }
+    receiveBytes(con, numHolder,sizeof(UUIDArray));
     memcpy(array, numHolder, sizeof(UUIDArray));
     return 0;
 }
