@@ -5,7 +5,6 @@
 #include "marsh.h"
 #include "data_types.h"
 #include "../Coms/coms.h"
-////ASADADASDASDSDSDAadasdasdsadasadssad
 
 //connects to an address ej: "192.168.13"
 //returns NULL if it couldnt connect
@@ -38,9 +37,8 @@ int sendInt(connection * con, int num){
 //Its blocking
 int receiveInt(connection * con, int * num){
     char  numHolder[sizeof(num)] = {0};
-    while (numHolder[0] == 0) {
-      receiveBytes(con, numHolder,sizeof(num));
-    }
+    receiveBytes(con, numHolder,sizeof(num));
+
     memcpy(num, numHolder, sizeof(num));
     return 0;
 }

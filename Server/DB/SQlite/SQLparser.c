@@ -4,13 +4,15 @@
 #include <assert.h>
 #include "SQLparser.h"
 
+#define MAX_BUFF 250
+
 
 int createTable(dbdata_t * dbData) {
-	char str[200] = {0}, * query = "create table product (name  varchar(20) primary key, stock int, price int);\n";
+	char str[MAX_BUFF] = {0}, * query = "create table product (name  varchar(20) primary key, stock int, price int);\n";
 
     write(dbData->fdin, query, strlen(query));
 
-    read(dbData->fdout, str, 200);
+    read(dbData->fdout, str, MAX_BUFF);
     if (strncmp(str, query, strlen(query)) != 0) {
     	return -1;
     }
@@ -18,14 +20,14 @@ int createTable(dbdata_t * dbData) {
 }
 
 int insertIntoTable(dbdata_t * dbData, char * name, int stock, int price) {
-	char str[200] = {0};
+	char str[MAX_BUFF] = {0};
 	char * query = calloc(strlen(name) + 35 + 10,1 ); // query + name + stock + price '\n'	(numbers must have less than 5 digits)
 
 	sprintf(query, "insert into product values('%s', %i, %i);\n", name, stock, price);
 
 	write(dbData->fdin, query, strlen(query));
 
-    read(dbData->fdout, str, 200);
+    read(dbData->fdout, str, MAX_BUFF);
     if (strncmp(str, query, strlen(query)) != 0) {
     	return -1;
     }
@@ -35,11 +37,11 @@ int insertIntoTable(dbdata_t * dbData, char * name, int stock, int price) {
 }
 
 int exitDB(dbdata_t * dbData) {
-	char str[200] = {0}, * query = ".exit\n";
+	char str[MAX_BUFF] = {0}, * query = ".exit\n";
 
     write(dbData->fdin, query, strlen(query));
 
-    read(dbData->fdout, str, 200);
+    read(dbData->fdout, str, MAX_BUFF);
     if (strncmp(str, query, strlen(query)) != 0) {
     	return -1;
     }
@@ -47,7 +49,7 @@ int exitDB(dbdata_t * dbData) {
 }
 
 int getPrice(dbdata_t * dbData, char * prodName) {
-	char str[200] = {0};
+	char str[MAX_BUFF] = {0};
 	int nameLen = strlen(prodName);
 	char * query = malloc(nameLen + 50); // query + name + '\n'
 
@@ -55,7 +57,7 @@ int getPrice(dbdata_t * dbData, char * prodName) {
 
 	write(dbData->fdin, query, strlen(query));
 
-	read(dbData->fdout, str, 200);
+	read(dbData->fdout, str, MAX_BUFF);
     if (strncmp(str, query, strlen(query)) != 0) {
     	return -1;
     }
@@ -69,7 +71,7 @@ int getPrice(dbdata_t * dbData, char * prodName) {
 }
 
 int getStock(dbdata_t * dbData, char * prodName) {
-	char str[200] = {0};
+	char str[MAX_BUFF] = {0};
 	int nameLen = strlen(prodName);
 	char * query = calloc(nameLen + 50, 1); // query + name + '\n'
 
@@ -77,7 +79,7 @@ int getStock(dbdata_t * dbData, char * prodName) {
 
 	write(dbData->fdin, query, strlen(query));
 
-	read(dbData->fdout, str, 200) > 0;
+	read(dbData->fdout, str, MAX_BUFF) > 0;
     if (strncmp(str, query, strlen(query)) != 0) {
     	return -1;
     }
@@ -91,7 +93,7 @@ int getStock(dbdata_t * dbData, char * prodName) {
 }
 
 int changeValue(dbdata_t * dbData, char * prodName, int stock, int price) {	
-	char str[200] = {0};
+	char str[MAX_BUFF] = {0};
 	int nameLen = strlen(prodName);
 	char * query = calloc(nameLen + 55 + 10, 1); // query + name + stock + price '\n'	(numbers must have less than 5 digits)
 
@@ -99,7 +101,7 @@ int changeValue(dbdata_t * dbData, char * prodName, int stock, int price) {
 
 	write(dbData->fdin, query, strlen(query));
 
-	read(dbData->fdout, str, 200);
+	read(dbData->fdout, str, MAX_BUFF);
     if (strncmp(str, query, strlen(query)) != 0) {
     	return -1;
     }
@@ -112,14 +114,14 @@ int changeValue(dbdata_t * dbData, char * prodName, int stock, int price) {
 void checkDBConnection(dbdata_t* DBdata){
     char *msg = "create table hola(a int);insert into hola values(1);select * from hola;drop table hola;\n";
     char *msgerror = "TEST;\n";
-    char str[200] = {0};
+    char str[MAX_BUFF] = {0};
 
     printf("Checking Database input...\n\n");
 
     write(DBdata->fdin, msg, strlen(msg));
 
     printf("Checking Database output...\n\n");
-    read(DBdata->fdout, str, 200);
+    read(DBdata->fdout, str, MAX_BUFF);
 
     if(strcmp(str,"create table hola(a int);\ninsert into hola values(1);\nselect * from hola;\n1\ndrop table hola;\n")!=0) {
         printf("ERROR CONNECTING DATABASE I/O\n");
@@ -133,7 +135,7 @@ void checkDBConnection(dbdata_t* DBdata){
     printf("Checking Database error output...\n\n");
 
     write(DBdata->fdin, msgerror, strlen(msgerror));
-    read(DBdata->fdout, str, 200);
+    read(DBdata->fdout, str, MAX_BUFF);
 
     if(strcmp(str,"Error: near line 2: near \"TEST\": syntax error\n")!=0) {
         printf("ERROR CONNECTING DATABASE ERROR OUTPUT\n");

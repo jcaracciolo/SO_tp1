@@ -12,11 +12,11 @@
 
 
 int main() {
-	char hostname[250];
-	char buffer[250];
-	char temp[250];
+	char hostname[MAX_BUF];
+	char buffer[MAX_BUF];
+	char temp[MAX_BUF];
 	int asd;
-	gethostname(hostname,250);
+	gethostname(hostname,MAX_BUF);
 	strcpy(buffer,"12352.");
 	strcat(buffer,hostname);
 	connection * con = connect(buffer);

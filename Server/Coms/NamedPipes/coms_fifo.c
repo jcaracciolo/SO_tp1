@@ -60,10 +60,7 @@ connection * connectToAddres(char * addr) {
 		return 0;
 	}
 
-	con->inFD=open(con->inPath,O_RDONLY | O_NONBLOCK);
-	con->outFD=open(con->outPath,O_RDWR);
-
-	// send to addr info about the connection	
+		// send to addr info about the connection
 	char fifoToConnect[MAX_BUF] = {0};
 	strcpy(fifoToConnect, "/tmp/");
 	strcat(fifoToConnect, addr);
@@ -76,8 +73,9 @@ connection * connectToAddres(char * addr) {
 	strcat(fifoPaths, con->inPath);
 
 	write(fdToConnect, fifoPaths, strlen(fifoPaths)+1);
-	// write(fdToConnect, con->outPath, strlen(con->outPath)+1);
-	// write(fdToConnect, con->inPath, strlen(con->inPath)+1);
+
+	con->outFD=open(con->outPath,O_WRONLY);
+	con->inFD=open(con->inPath,O_RDONLY);
 
 	return con;
 }
@@ -107,26 +105,22 @@ connection * readNewConnection(int fd) {
 
 	char buf[MAX_BUF];
 	buf[0] = 0;
-	while (buf[0] == 0) {
-		read(fd, buf, MAX_BUF);
-	}
 
-	int i = 0;
-	while (buf[i] != '\n'){
+	read(fd, buf, MAX_BUF);
+
+	int i,j;
+	for(i=0;buf[i] != '\n';i++){
 		con->inPath[i] = buf[i];
-		i++;
 	}
 	con->inPath[i++] = '\0';
 
-	int j = 0;
-	while (buf[i] != '\0'){
+	for(j=0;buf[i] != '\0';j++,i++){
 		con->outPath[j] = buf[i];
-		i++; j++;
 	}
 	con->outPath[j] = '\0';
 
-	con->inFD=open(con->inPath,O_RDONLY | O_NONBLOCK);
-	con->outFD=open(con->outPath,O_RDWR);
+	con->inFD=open(con->inPath,O_RDONLY);
+	con->outFD=open(con->outPath,O_WRONLY);
 	return con;
 }
 

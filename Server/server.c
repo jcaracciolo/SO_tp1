@@ -17,6 +17,7 @@
 #define PATHDBOUT "/tmp/fifoDBserverOut"
 
 #define MAX_BUF 300
+#define UUID_CANT 100
 
 dbdata_t* DBdata;
 
@@ -32,10 +33,8 @@ void createChild(connection * con) {
 
 void assist(connection* con) {
     while (1) {
-        char buf[300]={0};
-        while (buf[0] == 0) {
-            receiveBytes(con,buf,300);
-        }
+        char buf[MAX_BUF]={0};
+            receiveBytes(con,buf,MAX_BUF);
 				printf("%s thsi %d\n",buf,3);
 				sendInt(con, 76);
 
@@ -62,18 +61,16 @@ void assist(connection* con) {
     }
 }
 
-
-
 int main(int argc, char *argv[]) {
-    char hostname[250];
-    char buffer[250];
+    char hostname[MAX_BUF];
+    char buffer[MAX_BUF];
     srand(0);
 
     DBdata=malloc(sizeof(dbdata_t));
     connectDB(DBdata);
-    initializeUUID(10000);
+    initializeUUID(UUID_CANT);
 
-	gethostname(hostname,250);
+	gethostname(hostname,MAX_BUF);
 
 	strcpy(buffer,"12352.");
 	strcat(buffer,hostname);
@@ -114,8 +111,11 @@ int connectDB(dbdata_t* DBdata){
         open(PATHDBIN,O_RDONLY);
         open(PATHDBOUT,O_WRONLY);
         open(PATHDBOUT,O_WRONLY);
+
         char* ar[3]={"sqlite3","-echo",NULL};
         execv("./DB/SQlite/sqlite3",ar);
+        printf("ERROR EXECUTING SQLITE!");
+        exit(1);
     } else {
         printf("Connecting Database...\n\n");
 
@@ -124,19 +124,6 @@ int connectDB(dbdata_t* DBdata){
 
         checkDBConnection(DBdata);
         initializeDB(DBdata);
-
-  //       int price = getPrice(DBdata, "papa");
-  //       int stock = getStock(DBdata, "papa");
-  //       printf("Papa cuesta: %i\nPapa stock: %i\n", price, stock);
-
-		// puts("Modificando tabla...");
-
-  //       changeValue(DBdata, "papa", 40, 60);
-  //       price = getPrice(DBdata, "papa");
-  //       stock = getStock(DBdata, "papa");
-  //       printf("Papa cuesta: %i\nPapa stock: %i\n", price, stock);
-
-  //       exitDB(DBdata);
 
     }
 
@@ -152,4 +139,5 @@ void initializeUUID(unsigned int n){
         fflush(stdout);
         UUIDadd(newUUID((uint64_t) random(),(uint64_t) random()));
     }
+    printf("\nUUID insertion succesful\n");
 }
