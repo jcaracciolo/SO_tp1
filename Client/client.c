@@ -22,7 +22,7 @@ int main() {
 
     gethostname(hostname, 250);
     strcpy(buffer, "12352.");
-    strcat(buffer, hostname);
+    strcat(buffer, "localhost");
     connection *con = connectToAddres(buffer);
 
     puts("Price of papa?");

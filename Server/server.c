@@ -21,6 +21,8 @@
 #define UUID_CANT 100
 
 dbdata_t* DBdata;
+char* addrname;
+sem_t* semid;
 
 
 void createChild(connection * con) {
@@ -45,6 +47,7 @@ void attPriceTransaction(connection * con){
 }
 
 void attBuyTransaction(connection * con){
+
     printf("Attending purchase\n");
     char prodName[MAX_PROD_NAME_LENGHT];
 
@@ -60,9 +63,11 @@ void attBuyTransaction(connection * con){
     sendInt(con,ACKNOWLEDGE);
     maxPay=receiveInt(con);
 
+    sem_wait(&semid);
     //TODO mutex, if max pay>cancel
     //TODO get from DB
     //TODO thread get from UUID
+    sem_post(&semid);
 
     UUIDArray msg;
     for(int i=0;i<amount;i++){
@@ -146,19 +151,34 @@ void assist(connection* con) {
 
 int main(int argc, char *argv[]) {
     char hostname[MAX_BUF];
-    char buffer[MAX_BUF];
+
     srand(0);
 
     DBdata=malloc(sizeof(dbdata_t));
+    addrname=calloc(MAX_BUF,1);
+
     connectDB(DBdata);
     initializeUUID(UUID_CANT);
 
-	gethostname(hostname,MAX_BUF);
+    puts("Initializing synchronization");
 
-	strcpy(buffer,"12352.");
-	strcat(buffer,hostname);
+    sem_t* sem;
+    strcpy(addrname,"12352.");
+    strcat(addrname,"localhost");
 
-	int serverFD = openAdress(buffer);
+    sem=sem_open(addrname,O_CREAT,0600,0);
+    if(sem==SEM_FAILED){
+        perror("Error initializing synchronization");
+        exit(1);
+    }
+    if( sem_init(&sem,1,1) < 0)
+    {
+        perror("Error initializing synchronization");
+        exit(1);
+    }
+
+
+	int serverFD = openAdress(addrname);
 	if (serverFD < 0) {
 		printf("Opening server address failed\n");
 		exit(1);
