@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <pthread.h>
 #include "Coms/coms.h"
 #include "server.h"
 #include "DB/SQlite/SQLparser.h"
@@ -17,8 +18,11 @@
 #define PATHDBOUT "/tmp/fifoDBserverOut"
 
 #define MAX_BUF 300
+#define UUID_CANT 100
 
 dbdata_t* DBdata;
+pthread_t tid[2];
+
 
 void createChild(connection * con) {
 	int childPID;
@@ -86,18 +90,20 @@ void assist(connection* con) {
     }
 }
 
+void* validateMsg(){
 
+}
 
 int main(int argc, char *argv[]) {
-    char hostname[250];
-    char buffer[250];
+    char hostname[MAX_BUF];
+    char buffer[MAX_BUF];
     srand(0);
 
     DBdata=malloc(sizeof(dbdata_t));
     connectDB(DBdata);
-    initializeUUID(10000);
+    initializeUUID(UUID_CANT);
 
-	gethostname(hostname,250);
+	gethostname(hostname,MAX_BUF);
 
 	strcpy(buffer,"12352.");
 	strcat(buffer,hostname);
@@ -138,8 +144,11 @@ int connectDB(dbdata_t* DBdata){
         open(PATHDBIN,O_RDONLY);
         open(PATHDBOUT,O_WRONLY);
         open(PATHDBOUT,O_WRONLY);
+
         char* ar[3]={"sqlite3","-echo",NULL};
         execv("./DB/SQlite/sqlite3",ar);
+        printf("ERROR EXECUTING SQLITE!");
+        exit(1);
     } else {
         printf("Connecting Database...\n\n");
 
@@ -148,19 +157,6 @@ int connectDB(dbdata_t* DBdata){
 
         checkDBConnection(DBdata);
         initializeDB(DBdata);
-
-  //       int price = getPrice(DBdata, "papa");
-  //       int stock = getStock(DBdata, "papa");
-  //       printf("Papa cuesta: %i\nPapa stock: %i\n", price, stock);
-
-		// puts("Modificando tabla...");
-
-  //       changeValue(DBdata, "papa", 40, 60);
-  //       price = getPrice(DBdata, "papa");
-  //       stock = getStock(DBdata, "papa");
-  //       printf("Papa cuesta: %i\nPapa stock: %i\n", price, stock);
-
-  //       exitDB(DBdata);
 
     }
 
@@ -176,4 +172,5 @@ void initializeUUID(unsigned int n){
         fflush(stdout);
         UUIDadd(newUUID((uint64_t) random(),(uint64_t) random()));
     }
+    printf("\nUUID insertion succesful\n");
 }
