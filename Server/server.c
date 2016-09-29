@@ -63,14 +63,21 @@ void attBuyTransaction(connection * con){
     sendInt(con,ACKNOWLEDGE);
     maxPay=receiveInt(con);
 
-    sem_wait(&semid);
-    //TODO mutex, if max pay>cancel
+    UUIDArray tdata;
+    tdata.size=amount;
+    pthread_t UUIDthread;
 
+    int err = pthread_create(&(UUIDthread), NULL, &getNUUID, &tdata);
+    if (err != 0) {
+        //TODO make something
+    }
+
+    sem_wait(&semid);
     //TODO get from DB
     short buyRealised = 0;
     int price = getPrice(DBdata, prodName);
     int stock = getStock(DBdata, prodName);
-    if (price * amount <= maxPay && stock >= amount) {
+    if (price * amount <= maxPay && stock >= amount && amount<=MAX_UUIDS_PER_ARRAY) {
             printf("amount: %i\n", amount);
             printf("old Stock: %i\n", stock);
             updateStock(DBdata, prodName, stock - amount);
@@ -78,20 +85,28 @@ void attBuyTransaction(connection * con){
             buyRealised = 1;     
     }
 
-
     //TODO thread get from UUID
     sem_post(&semid);
 
-    UUIDArray msg;
-    for(int i=0;i<amount;i++){
-        msg.uuids[i]=getRandomUUID();
+    int ret;
+    pthread_join(UUIDthread, &ret);
+
+    if(ret==0 && buyRealised){
+        sendUUIDArray(con,&tdata);
+        receiveInt(con);
+        sendInt(con,amount*3);
+    }else{
+        sendInt(con,ERROR);
     }
-    msg.size=amount;
+}
 
-
-    sendUUIDArray(con,&msg);
-    receiveInt(con);
-    sendInt(con,amount*3);
+int getNUUID(UUIDArray* tofill){
+    printf("sdasdasds\n" );
+    
+    for(int i=0;i<tofill->size;i++){
+        tofill->uuids[i]=getRandomUUID();
+    }
+    return 0;
 
 }
 
@@ -103,6 +118,7 @@ void attStockTransaction(connection * con){
 		int stock = getStock(DBdata, prodName);
 		sendInt(con, stock);
 }
+
 int validateUUID(char* arg){
 
     printf("THIS THREAD SAID: %s\n",arg);
@@ -123,12 +139,12 @@ void assist(connection* con) {
                             attStockTransaction(con);
                             break;
                         case SELL:
-                            err = pthread_create(&(UUIDthread), NULL, &validateUUID, "HOLA");
+               
                             if (err != 0) {
                                 //TODO make something
                             }
                             int ret;
-                            pthread_join(UUIDthread, &ret);
+                    
                             printf("thread done %d\n", ret);
                             break;
                         case BUY:
