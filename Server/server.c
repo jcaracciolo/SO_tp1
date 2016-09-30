@@ -15,6 +15,7 @@
 #include "DB/SQlite/SQLparser.h"
 #include "DB/UUID_DataBase/DB.h"
 #include "Marshalling/marsh.h"
+#include "Logs/log.h"
 
 #define PATHDBIN "/tmp/fifoDBserverIN"
 #define PATHDBOUT "/tmp/fifoDBserverOut"
@@ -24,6 +25,7 @@
 dbdata_t* DBdata;
 char* addrname;
 sem_t* semid;
+int msqid;
 
 
 
@@ -202,6 +204,9 @@ int main(int argc, char *argv[]) {
     };
     sigaction(SIGCHLD, &sigchld_action, NULL);
     srand(0);
+
+
+
 
     DBdata=malloc(sizeof(dbdata_t));
     addrname=calloc(MAX_BUF,1);
