@@ -26,6 +26,8 @@ char* addrname;
 sem_t* semid;
 
 
+
+
 void createChild(connection * con) {
 	int childPID;
 
@@ -41,6 +43,7 @@ void attPriceTransaction(connection * con){
 		char prodName[MAX_PROD_NAME_LENGHT];
 		sendACK(con);
 		receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
+
 		int price = getPrice(DBdata, prodName);
 		sendInt(con, price);
 }
@@ -209,8 +212,7 @@ int main(int argc, char *argv[]) {
     puts("Initializing synchronization");
 
     sem_t* sem;
-    strcpy(addrname,"10.1.34.241:5000");
-    strcat(addrname,"/localhost");
+    strcpy(addrname,"10.1.34.241:5000/localhost");
 
     sem=sem_open("SB",O_CREAT,0600,1);
 
@@ -245,7 +247,8 @@ void drawChart(){
     int stock=getStock(DBdata,"papa");
     int price=getPrice(DBdata,"papa");
     printf("papas | %d | %d ",stock,price);
-    for(int i=0;i<stock;i++){
+    int i;
+    for(i=0;i<stock;i++){
         printf("----");
     }
     puts("");

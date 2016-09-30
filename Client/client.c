@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "../Server/Coms/coms.h"
 #include "../Server/Marshalling/marsh.h"
 #include "../Server/DB/UUID_DataBase/data_types.h"
@@ -13,12 +14,22 @@
 #define MAX_BUF 300
 
 
-int main() {
-    char hostname[MAX_BUF];
+
+int main(int argc, int * argv[]) {
     char buffer[MAX_BUF];
 
-    strcpy(buffer, "10.1.34.241:5000");
-    strcat(buffer, "/localhost");
+    if (argc == 1) {        
+    strcpy(buffer, ":5000/localhost");
+    } else if (argc == 2) {
+        strcpy(buffer, argv[1]); //10.1.34.241
+        strcat(buffer, ":5000/localhost");
+    } else {
+        puts("Invalid quantity of arguments");
+        exit(1);
+    }
+
+    puts(buffer);
+
     connection *con = connectToAddres(buffer);
 
     UUIDStock * stock = malloc(sizeof(UUIDStock));
