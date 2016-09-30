@@ -2,12 +2,14 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <semaphore.h>
+#include <signal.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <pthread.h>
+#include <time.h>
 #include "Coms/coms.h"
 #include "server.h"
 #include "DB/UUID_DataBase/DB.h"
@@ -15,13 +17,15 @@
 
 #define PATHDBIN "/tmp/fifoDBserverIN"
 #define PATHDBOUT "/tmp/fifoDBserverOut"
-
+#define PATHLOGIN "./logs/log"
 #define MAX_BUF 300
 #define UUID_CANT 100
 
 dbdata_t* DBdata;
 char* addrname;
 sem_t* semid;
+
+
 
 
 void createChild(connection * con) {
@@ -83,14 +87,12 @@ void attBuyTransaction(connection * con){
             printf("old Stock: %i\n", stock);
             updateStock(DBdata, prodName, stock - amount);
             printf("New Stock: %i\n", getStock(DBdata, prodName));
-            buyRealised = 1;     
+            buyRealised = 1;
     }
 
     //TODO thread get from UUID
     sem_post(semid);
     sem_close(semid);
-
-    puts("dasdmoask");
 
     int ret;
     pthread_join(UUIDthread, &ret);
@@ -179,10 +181,14 @@ void assist(connection* con) {
     }
 }
 
-
 int main(int argc, char *argv[]) {
     char hostname[MAX_BUF];
 
+    struct sigaction sigchld_action = {
+            .sa_handler = SIG_DFL,
+            .sa_flags = SA_NOCLDWAIT
+    };
+    sigaction(SIGCHLD, &sigchld_action, NULL);
     srand(0);
 
     DBdata=malloc(sizeof(dbdata_t));
@@ -210,21 +216,37 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
+    clock_t begin=clock();
     while (1) {
     	connection * con = readNewConnection(serverFD);
     	if(con!=NULL){
     		createChild(con);
-    	} else {
-            // server do his stuff...
+    	} else if((clock() - begin) > 500 ){
+//            printf("\e[1;1H\e[2J");
+//            drawChart();
+//            begin=clock();
+//
         }
     }
 
 	return 0;
 }
 
+void drawChart(){
+    int stock=getStock(DBdata,"papa");
+    int price=getPrice(DBdata,"papa");
+    printf("papas | %d | %d ",stock,price);
+    for(int i=0;i<stock;i++){
+        printf("----");
+    }
+    puts("");
+
+
+}
+
 void initializeDB(dbdata_t * DBdata) {
     createTable(DBdata);
-    insertIntoTable(DBdata, "papa", 8, 3);
+    insertIntoTable(DBdata, "papa", 8000000, 3);
 }
 
 int connectDB(dbdata_t* DBdata){

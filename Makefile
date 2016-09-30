@@ -6,4 +6,4 @@ all:
 clean:
 	cd Server; make clean
 	cd Client; make clean
-	rm -f /tmp/*fifo*
+	rm -f /tmp/*fifo* /tmp/12352.localhost

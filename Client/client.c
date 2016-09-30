@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include "../Server/Coms/coms.h"
 #include "../Server/Marshalling/marsh.h"
 #include "../Server/DB/UUID_DataBase/data_types.h"
@@ -15,6 +14,7 @@
 
 
 int main() {
+    char hostname[MAX_BUF];
     char buffer[MAX_BUF];
 
     strcpy(buffer, "10.1.34.241:5000");
