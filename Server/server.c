@@ -234,7 +234,8 @@ void drawChart(){
     int stock=getStock(DBdata,"papa");
     int price=getPrice(DBdata,"papa");
     printf("papas | %d | %d ",stock,price);
-    for(int i=0;i<stock;i++){
+    int i;
+    for(i=0;i<stock;i++){
         printf("----");
     }
     puts("");
