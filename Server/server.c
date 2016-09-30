@@ -38,10 +38,8 @@ void createChild(connection * con) {
 void attPriceTransaction(connection * con){
 		printf("Attending price\n");
 		char prodName[MAX_PROD_NAME_LENGHT];
-
-		sendInt(con,ACKNOWLEDGE);
+		sendACK(con);
 		receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
-
 		int price = getPrice(DBdata, prodName);
 		sendInt(con, price);
 }
@@ -51,17 +49,21 @@ void attBuyTransaction(connection * con){
     printf("Attending purchase\n");
     char prodName[MAX_PROD_NAME_LENGHT];
 
-    sendInt(con,ACKNOWLEDGE);
+    sendACK(con);
 
+		//Receive prodname and send ack
     receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
+		printf("prodName %s\n", prodName);
+    sendACK(con);
 
-    int amount;
-    sendInt(con,ACKNOWLEDGE);
-    amount=receiveInt(con);
+		//receive amount of product to buy
+    int amount=receiveInt(con);
+		printf("cantidad %d\n", amount);
+		sendACK(con);
 
-    int maxPay;
-    sendInt(con,ACKNOWLEDGE);
-    maxPay=receiveInt(con);
+		//receive max price the client is willing to pay
+    int maxPay=receiveInt(con);
+		printf("max price %d\n", amount);
 
     UUIDArray tdata;
     tdata.size=amount;
@@ -79,13 +81,14 @@ void attBuyTransaction(connection * con){
     short buyRealised = 0;
     int price = getPrice(DBdata, prodName);
     int stock = getStock(DBdata, prodName);
+		//Check if the client is not overpaying and is not trying to buy too much
     if (price * amount <= maxPay && stock >= amount && amount<=MAX_UUIDS_PER_ARRAY) {
             printf("amount: %i\n", amount);
             printf("old Stock: %i\n", stock);
             updateStock(DBdata, prodName, stock - amount);
             printf("New Stock: %i\n", getStock(DBdata, prodName));
-            buyRealised = 1;     
-    }
+            buyRealised = 1;
+    } else printf("You want to pay too little or buy too much\n");
 
     //TODO thread get from UUID
     sem_post(semid);
@@ -97,12 +100,20 @@ void attBuyTransaction(connection * con){
     pthread_join(UUIDthread, &ret);
 
     if(ret==0 && buyRealised){
+				//tell the client the transaction went through and receive confirmation
+				sendTransType(con,OK);
+				receiveACK(con);
+
         sendUUIDArray(con,&tdata);
-        receiveInt(con);
-        sendInt(con,amount*3);
+				receiveACK(con);
+				//send total amount payed by client
+        sendInt(con,7);
+        sendInt(con,7);
+				puts("sent total\n");
     }else{
-        sendInt(con,ERROR);
+        sendTransType(con,ERROR);
     }
+		receiveACK(con);
 }
 
 int getNUUID(UUIDArray* tofill){
@@ -115,10 +126,10 @@ int getNUUID(UUIDArray* tofill){
 void attStockTransaction(connection * con){
 		printf("Attending stock\n");
 		char prodName[MAX_PROD_NAME_LENGHT];
-		sendInt(con,ACKNOWLEDGE); //TODO replace with ack
+		sendACK(con);
 		receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
-		int stock = getStock(DBdata, prodName);
-		sendInt(con, stock);
+		int price = getStock(DBdata, prodName);
+		sendInt(con, price);
 }
 
 int validateUUID(char* arg){
@@ -132,7 +143,7 @@ void assist(connection* con) {
 
                 pthread_t UUIDthread;
                 int err;
-				int transactionType=receiveInt(con);
+				transType_t transactionType=receiveTransType(con);
                     switch (transactionType) {
                         case PRICE:
                             attPriceTransaction(con);
@@ -141,12 +152,12 @@ void assist(connection* con) {
                             attStockTransaction(con);
                             break;
                         case SELL:
-               
+
                             if (err != 0) {
                                 //TODO make something
                             }
                             int ret;
-                    
+
                             printf("thread done %d\n", ret);
                             break;
                         case BUY:
