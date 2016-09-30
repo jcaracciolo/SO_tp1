@@ -90,8 +90,6 @@ void attBuyTransaction(connection * con){
     sem_post(semid);
     sem_close(semid);
 
-    puts("dasdmoask");
-
     int ret;
     pthread_join(UUIDthread, &ret);
 
@@ -194,8 +192,7 @@ int main(int argc, char *argv[]) {
     puts("Initializing synchronization");
 
     sem_t* sem;
-    strcpy(addrname,"10.1.34.241:5000");
-    strcat(addrname,"/localhost");
+    strcpy(addrname,"10.1.34.241:5000/localhost");
 
     sem=sem_open("SB",O_CREAT,0600,1);
 
@@ -203,7 +200,6 @@ int main(int argc, char *argv[]) {
         perror("Error initializing synchronization");
         exit(1);
     }
-    puts(addrname);
 	int serverFD = openAdress(addrname);
 	if (serverFD < 0) {
 		printf("Opening server address failed\n");

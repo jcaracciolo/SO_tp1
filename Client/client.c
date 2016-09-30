@@ -14,11 +14,21 @@
 #define MAX_BUF 300
 
 
-int main() {
+int main(int argc, int * argv[]) {
     char buffer[MAX_BUF];
 
-    strcpy(buffer, "10.1.34.241:5000");
-    strcat(buffer, "/localhost");
+    if (argc == 1) {        
+    strcpy(buffer, ":5000/localhost");
+    } else if (argc == 2) {
+        strcpy(buffer, argv[1]); //10.1.34.241
+        strcat(buffer, ":5000/localhost");
+    } else {
+        puts("Invalid quantity of arguments");
+        exit(1);
+    }
+
+    puts(buffer);
+
     connection *con = connectToAddres(buffer);
 
     puts("Price of papa?");
