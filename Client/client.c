@@ -21,79 +21,38 @@ int main() {
     strcat(buffer, "/localhost");
     connection *con = connectToAddres(buffer);
 
+    UUIDStock * stock = malloc(sizeof(UUIDStock));
+    stock->size = 0;
+    stock->last = 0;
+    stock->uuids = NULL;
+
     puts("Price of papa?");
-    int pricePapa;
-    sendInt(con, PRICE);
-    int ackn = receiveInt(con); //TODO: replace with ack
-    if(ackn!=ACKNOWLEDGE){
-        puts("ERROR");
-        exit(1);
-    }
-    sendString(con, "papa\0");
-    pricePapa = receiveInt(con);
-    printf("%d\n", pricePapa);
+    int pricePapa = getPriceFromDB(con,"papa");
+    printf("adada %d\n", pricePapa);
 
     puts("Stock of papa?");
-    int onestock;
-    sendInt(con, STOCK);
-    ackn = receiveInt(con); //TODO: replace with ack
-    if(ackn!=ACKNOWLEDGE){
-        puts("ERROR");
-        exit(1);
-    }
-    sendString(con, "papa\0");
-    onestock = receiveInt(con);
-    printf("first stock %d\n", onestock);
+    int stockPapa = getStockFromDB(con,"papa");
+    printf("first stock %d\n", pricePapa);
 
-    sendInt(con,BUY);
-    ackn = receiveInt(con); //TODO: replace with ack
-    if(ackn!=ACKNOWLEDGE){
-        puts("ERROR");
-        exit(1);
-    }
+    puts("Stock of papa?");
+    stockPapa = getStockFromDB(con,"papa");
+    printf("first stock %d\n", pricePapa);
 
-    sendString(con, "papa\0");
-    ackn = receiveInt(con); //TODO: replace with ack
-    if(ackn!=ACKNOWLEDGE){
-        puts("ERROR");
-        exit(1);
-    }
+    //START BUY
+    puts("Trying to buy 2");
+    printf("before buying i got %d papas\n", stock->last);
+    int res = sendBuyTransaction(con, "papa\0", 2, 10, stock);
+    printf("after buying i got %d papas\n", stock->last);
 
+    //END BUY
 
-    sendInt(con,2);
-    ackn = receiveInt(con); //TODO: replace with ack
-    if(ackn!=ACKNOWLEDGE){
-        puts("ERROR");
-        exit(1);
-    }
-
-    sendInt(con,3*pricePapa);
-
-    int cost;
-    UUIDStock *ans=receiveUUIDArray(con,2,&cost);
-
-    int i;
-    for(i=0;i<ans->last;i++){
-        printf("%ld - %ld\n",ans->uuids[i].high,ans->uuids[i].low);
-    }
-    printf("%d\n",cost);
-
-     puts("Stock of papa?");
-    int secondstock;
-    sendInt(con, STOCK);
-    ackn = receiveInt(con); //TODO: replace with ack
-    if(ackn!=ACKNOWLEDGE){
-        puts("ERROR");
-        exit(1);
-    }
-    sendString(con, "papa\0");
-    secondstock = receiveInt(con);
-    printf("second stock %d\n", secondstock);
+    puts("Stock of papa?");
+    stockPapa = getStockFromDB(con,"papa\0");
+    printf("second stock %d\n", pricePapa);
 
     puts("END TRANSACTION");
 
-	sendInt(con, CLOSE);
-    endConnection(con);
+	   disconnect(con);
 
 
 }
