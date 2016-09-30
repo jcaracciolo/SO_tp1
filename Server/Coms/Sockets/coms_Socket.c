@@ -19,68 +19,65 @@ struct connection_t {
  */
 connection * connectToAddres(char * id) {
 	connection * con = malloc(sizeof(connection));
-	struct hostent * host;
     struct sockaddr_in host_addr;
-	char addr[255];
-	char hostName[255];
+	char ip[255];
+	char port[6];
+
 
 	int i = 0;
-	while (id[i] != '.') {
-		addr[i] = id[i];
+	while (id[i] != ':') {
+		ip[i] = id[i];
 		i++;
 	}
-	addr[i++] = '\0';
+	ip[i++] = '\0';
 
 	int j = 0;
-	while (id[i] != '\0') {
-		hostName[j++] = id[i];
+	while (id[i] != '/') {
+		port[j++] = id[i];
 		i++;
 	}
-	hostName[j] = '\0';
+	port[j] = '\0';
 
-	int portno = atoi(addr);
+	printf("ip:%s port:%s\n", ip, port);
+
+	int portno = atoi(port);
     con->sockFD = socket(AF_INET, SOCK_STREAM, 0);
     if (con->sockFD < 0) 
 		error("ERROR opening socket");
 
-    host = gethostbyname(hostName);
-    if (host == NULL) {
-		fprintf(stderr,"ERROR, no such host\n");
-		exit(0);
-    }
-    bzero((char *) &host_addr, sizeof(host_addr));
     host_addr.sin_family = AF_INET;
-    bcopy((char *)host->h_addr, (char *)&host_addr.sin_addr.s_addr, host->h_length);
+    host_addr.sin_addr.s_addr = inet_addr(ip);
+    //bcopy((char *)host->h_addr, (char *)&host_addr.sin_addr.s_addr, host->h_length);
     host_addr.sin_port = htons(portno);
-
     if (connect(con->sockFD,(struct sockaddr *)&host_addr,sizeof(host_addr)) < 0) 
         error("ERROR connecting");
 
     return con;
+puts("AAAA");
 }
 
 int openAdress(char * addr) {
 	struct sockaddr_in new_addr;
 	char port[255];
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);	// openning socket
+	int i = 0;
+	int j = 0;
 	if (sockfd < 0) 
 		error("ERROR opening socket");
 
-	int i = 0;
-	while (addr[i] != '.') {
-		port[i] = addr[i];
+	while (addr[i++] != ':');
+	while (addr[i] != '/') {
+		port[j++] = addr[i];
 		i++;
 	}
-	port[i++] = '\0';
+	port[j] = '\0';
+
+	printf("port: %s\n", port);
 
 	bzero((char *) &new_addr, sizeof(new_addr));
-
-	int portno = atoi(port);	// getting port number (passed in arguments)
-
-	// initializing server address
 	new_addr.sin_family = AF_INET;
 	new_addr.sin_addr.s_addr = INADDR_ANY;
-	new_addr.sin_port = htons(portno);
+	new_addr.sin_port = htons(atoi(port));
 
 	if (bind(sockfd, (struct sockaddr *) &new_addr, sizeof(new_addr)) < 0) 
 		error("ERROR on binding");
@@ -105,19 +102,21 @@ connection * readNewConnection(int fd) {
 	}
 
 	int socklen = sizeof(connectedSocket);
-	con->sockFD = accept4(fd, (struct sockaddr *) &connectedSocket, &socklen, SOCK_NONBLOCK); // waiting for client to connect
+	con->sockFD = accept(fd, (struct sockaddr *) &connectedSocket, &socklen); // waiting for client to connect
 	if (con->sockFD < 0)
 		error("ERROR on accept");
 	return con;
 }
 
-int sendBytes(connection * con, char * buffer, int cant) {	
-	write(con->sockFD, buffer, cant);
+int sendBytes(connection * con, char * buffer, int len) {	
+	//write(con->sockFD, buffer, cant);
+	send(con->sockFD, buffer, len, 0);
 	return 0;
 }
 
 int receiveBytes(connection * con, char * buffer, int len) {
-	return read(con->sockFD, buffer, len);
+	//return read(con->sockFD, buffer, len);
+	return recv(con->sockFD, buffer, len, 0);
 }
 
 void endConnection(connection * con) {

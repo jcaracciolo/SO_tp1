@@ -71,7 +71,7 @@ void attBuyTransaction(connection * con){
         //TODO make something
     }
 
-    sem_t* semid=sem_open(addrname,0);
+    sem_t* semid=sem_open("SB",0);
     sem_wait(semid);
 
     //TODO get from DB
@@ -105,7 +105,8 @@ void attBuyTransaction(connection * con){
 }
 
 int getNUUID(UUIDArray* tofill){
-    for(int i=0;i<tofill->size;i++){
+    int i;
+    for(i=0;i<tofill->size;i++){
         tofill->uuids[i]=getRandomUUID();
     }
     return 0;
@@ -193,16 +194,16 @@ int main(int argc, char *argv[]) {
     puts("Initializing synchronization");
 
     sem_t* sem;
-    strcpy(addrname,"12352.");
-    strcat(addrname,"localhost");
+    strcpy(addrname,"10.1.34.241:5000");
+    strcat(addrname,"/localhost");
 
-    sem=sem_open(addrname,O_CREAT,0600,1);
+    sem=sem_open("SB",O_CREAT,0600,1);
 
     if(sem==SEM_FAILED){
         perror("Error initializing synchronization");
         exit(1);
     }
-
+    puts(addrname);
 	int serverFD = openAdress(addrname);
 	if (serverFD < 0) {
 		printf("Opening server address failed\n");

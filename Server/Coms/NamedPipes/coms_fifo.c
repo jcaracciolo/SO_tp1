@@ -31,14 +31,14 @@ int countDigits(int n) {
     return count;
 }
 
-connection * connectToAddres(char * addr) {
-
-	/** 
+		/** 
 	  * Create paths for two pipes (in and out) with the pid of the process.
 	  * This way every pipe will have a unique name.
 	  */
-	int pid = getpid();
+connection * connectToAddres(char * addr) {
+	int pid = getpid(), i = 0, j = 0;
 	connection * con = malloc(sizeof(connection));
+	char hostName[MAX_BUF];
 
 	if ((con->inPath = malloc(14 + countDigits(pid))) == NULL) {
 		printf("Cannot create pipe. Lack of memory.\n");
@@ -60,10 +60,17 @@ connection * connectToAddres(char * addr) {
 		return 0;
 	}
 
+	while (addr[i++] != '/');
+	while (addr[i] != '\0') {
+		hostName[j++] = addr[i];
+		i++;
+	}
+	hostName[j] = '\0';
+
 		// send to addr info about the connection
 	char fifoToConnect[MAX_BUF] = {0};
 	strcpy(fifoToConnect, "/tmp/");
-	strcat(fifoToConnect, addr);
+	strcat(fifoToConnect, hostName);
 
 	int fdToConnect = open(fifoToConnect, O_WRONLY);
 	char fifoPaths[MAX_BUF];
@@ -81,9 +88,18 @@ connection * connectToAddres(char * addr) {
 }
 
 int openAdress(char * addr) {
-	char newFIFO[MAX_BUF] = {0};
+	char newFIFO[MAX_BUF] = {0}, hostName[MAX_BUF];
+	int i = 0, j = 0;
+
+	while (addr[i++] != '/');
+	while (addr[i] != '\0') {
+		hostName[j++] = addr[i];
+		i++;
+	}
+	hostName[j] = '\0';
+
 	strcpy(newFIFO, "/tmp/");
-	strcat(newFIFO, addr);
+	strcat(newFIFO, hostName);
 	mkfifo(newFIFO, 0666);
 	return open(newFIFO, O_RDWR);	// O_RDWR beacause p
 }

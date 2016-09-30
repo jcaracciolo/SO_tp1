@@ -15,15 +15,10 @@
 
 
 int main() {
-    char hostname[MAX_BUF];
     char buffer[MAX_BUF];
 
-
-    gethostname(hostname, MAX_BUF);
-
-    gethostname(hostname, 250);
-    strcpy(buffer, "12352.");
-    strcat(buffer, "localhost");
+    strcpy(buffer, "10.1.34.241:5000");
+    strcat(buffer, "/localhost");
     connection *con = connectToAddres(buffer);
 
     puts("Price of papa?");
@@ -77,7 +72,8 @@ int main() {
     int cost;
     UUIDStock *ans=receiveUUIDArray(con,2,&cost);
 
-    for(int i=0;i<ans->last;i++){
+    int i;
+    for(i=0;i<ans->last;i++){
         printf("%ld - %ld\n",ans->uuids[i].high,ans->uuids[i].low);
     }
     printf("%d\n",cost);
