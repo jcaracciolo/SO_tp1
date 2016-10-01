@@ -58,4 +58,11 @@ int getStockFromDB(connection * con, char * prodName, int client);
 //Tries to buy with the determined price
 int sendBuyTransaction( connection * con, char * prodName, int amount,
                         int maxPrice, UUIDStock * stock, int * finalCost,int client);
+
+int getBuySellInfo(connection* con,int* client, char* prodName, int* amount,int* pay);
+
+
+int getRequestedProduct(connection* con,int* client,char* prodName);
+
+void completePurchase(connection* con,UUIDArray* data,int payed);
 #endif

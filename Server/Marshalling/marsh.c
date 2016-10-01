@@ -141,25 +141,47 @@ int sendSellTransaction( connection * con, char * prodName,int amount,
     sendUUIDArray(con,&tosell);
 
 
-    receiveACK(con);
-
-
     if(receiveTransType(con) == OK){
 
         // printf("The trying to send uuids:\n");
         sendACK(con);
 
         *finalGain=receiveInt(con);
-        sendACK(con);
         return 1;
     } else {
         // printf("The transaction didnt go through:\n");
     }
-    sendACK(con);
     //This means the transaction didnt go through
     return 0;
 }
 
+int getRequestedProduct(connection* con,int* client,char* prodName){
+    sendACK(con);
+    *client=receiveInt(con);
+    sendACK(con);
+    receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
+    return 0;
+}
+
+int getBuySellInfo(connection* con,int *client, char *prodName, int *amount, int *pay){
+    sendACK(con);
+    *client=receiveInt(con);
+    sendACK(con);
+
+
+    //Receive prodname and send ack
+    receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
+    sendACK(con);
+
+    //receive amount of product to buy
+    *amount=receiveInt(con);
+    sendACK(con);
+
+    //receive max price the client is willing to pay
+    *pay=receiveInt(con);
+
+    return 0;
+}
 
 int sendBuyTransaction( connection * con, char * prodName,int amount,
                         int maxPrice, UUIDStock * stock, int * finalCost,int client){
@@ -183,7 +205,7 @@ int sendBuyTransaction( connection * con, char * prodName,int amount,
     if(receiveTransType(con) == OK){
 
         // printf("The trying to send uuids:\n");
-        sendACK(con);
+    sendACK(con);
     UUIDStock *ans=receiveUUIDArray(con,amount);
 
     sendACK(con);
@@ -206,13 +228,11 @@ int sendBuyTransaction( connection * con, char * prodName,int amount,
     // printf("Total i payed: %d\n",*finalCost  );
 
     // printf("The transaction went through:\n");
-    sendACK(con);
-    //This means the transaction went through
+
     return 1;
   } else {
     // printf("The transaction didnt go through:\n");
   }
-  sendACK(con);
   //This means the transaction didnt go through
   return 0;
 }
@@ -254,4 +274,13 @@ void addUUIDsToStock(UUIDStock * stock, UUIDStock * newUUIDS){
   stock->last = stock->last + newUUIDS->last ;
 
   free(newUUIDS);
+}
+
+void completePurchase(connection* con,UUIDArray* data,int payed){
+    sendTransType(con,OK);
+    receiveACK(con);
+    sendUUIDArray(con,data);
+    receiveACK(con);
+    sendInt(con,payed);
+
 }

@@ -29,8 +29,6 @@ sem_t* sem;
 int msqid;
 
 
-
-
 void createChild(connection * con) {
 	int childPID;
 
@@ -43,57 +41,44 @@ void createChild(connection * con) {
 }
 
 void attPriceTransaction(connection * con){
-    sendACK(con);
-
-    int client=receiveInt(con);
-    char buff[MAX_BUF];
-    sprintf(buff,"Attending price for client %d",client);
-    log(INFO,buff);
-
-    sendACK(con);
-
+    int client;
     char prodName[MAX_PROD_NAME_LENGHT];
-	receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
+
+    getRequestedProduct(con,&client,prodName);
 
     sem_wait(sem);
-	int price = getPrice(DBdata, prodName);
+    int price = getPrice(DBdata, prodName);
     sem_post(sem);
-	sendInt(con, price);
-}
-void attStockTransaction(connection * con){
-    sendACK(con);
 
-    int client=receiveInt(con);
     char buff[MAX_BUF];
-    sprintf(buff,"Attending stock for client %d",client);
+    sprintf(buff,"Attending client %d request price ($ %d) for product %s",client,price,prodName);
     log(INFO,buff);
 
-    sendACK(con);
-
-    char prodName[MAX_PROD_NAME_LENGHT];
-    receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
-
-    sem_wait(sem);
-    int price = getStock(DBdata, prodName);
-    sem_post(sem);
     sendInt(con, price);
 }
+void attStockTransaction(connection * con){
+
+    int client;
+    char prodName[MAX_PROD_NAME_LENGHT];
+
+    getRequestedProduct(con,&client,prodName);
+
+    sem_wait(sem);
+    int stock = getStock(DBdata, prodName);
+    sem_post(sem);
+
+    char buff[MAX_BUF];
+    sprintf(buff,"Attending client %d request stock (%d) for product %s",client,stock,prodName);
+    log(INFO,buff);
+
+    sendInt(con, stock);
+}
 void attBuyTransaction(connection * con){
-    sendACK(con);
-    int client=receiveInt(con);
-    sendACK(con);
 
     char prodName[MAX_PROD_NAME_LENGHT];
-    //Receive prodname and send ack
-    receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
-    sendACK(con);
+    int client,amount,maxPay;
 
-    //receive amount of product to buy
-    int amount=receiveInt(con);
-    sendACK(con);
-
-    //receive max price the client is willing to pay
-    int maxPay=receiveInt(con);
+    getBuySellInfo(con,&client,prodName,&amount,&maxPay);
 
     char buff[MAX_BUF];
     sprintf(buff,"Attending buy trans for client %d, wanting to buy %d of %s at a max of $ %d ",client,amount,prodName,maxPay);
@@ -154,16 +139,11 @@ void attBuyTransaction(connection * con){
     pthread_join(UUIDthread, &ret);
 
 
-    if(ret==0 && buyRealised){
+    if(ret==0 && buyRealised) {
         //tell the client the transaction went through and receive confirmation
-        sendTransType(con,OK);
-        receiveACK(con);
+        completePurchase(con,&tdata,price*amount);
 
-        sendUUIDArray(con,&tdata);
-        receiveACK(con);
-        sendInt(con,price*amount);
-
-        //send total amount payed by client
+            //send total amount payed by client
         // sendInt(con,amount*price);
         // sendInt(con,7);
         // fflush(NULL);
@@ -173,26 +153,13 @@ void attBuyTransaction(connection * con){
     }else{
         sendTransType(con,ERROR);
     }
-		receiveACK(con);
 }
-
 void attSellTransaction(connection * con){
 
-    sendACK(con);
-    int client=receiveInt(con);
-    sendACK(con);
-
     char prodName[MAX_PROD_NAME_LENGHT];
-    //Receive prodname and send ack
-    receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
-    sendACK(con);
+    int client,amount,minPay;
 
-    //receive amount of product to buy
-    int amount=receiveInt(con);
-    sendACK(con);
-
-    //receive max price the client is willing to pay
-    int minPay=receiveInt(con);
+    getBuySellInfo(con,&client,prodName,&amount,&minPay);
 
     char buff[MAX_BUF];
     sprintf(buff,"Attending sell trans for client %d, wanting to sell %d of %s at a min of $ %d ",client,amount,prodName,minPay);
@@ -240,14 +207,12 @@ void attSellTransaction(connection * con){
 
     void* ret;
     pthread_join(UUIDthread, &ret);
-    sendACK(con);
 
 
     if(ret==0 && sellRealised){
         //tell the client the transaction went through and receive confirmation
         sendTransType(con,OK);
         receiveACK(con);
-
         sendInt(con,price * amount);
 
         sprintf(buff, "Sell transaction from %d - %d of %s sold correctly at %d",client,amount,prodName,amount*price);
@@ -255,7 +220,6 @@ void attSellTransaction(connection * con){
     }else{
         sendTransType(con,ERROR);
     }
-    receiveACK(con);
 }
 
 
