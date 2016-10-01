@@ -15,11 +15,11 @@
 
 
 
-int main(int argc, int * argv[]) {
+int main(int argc, char * argv[]) {
     char buffer[MAX_BUF];
 
-    if (argc == 1) {        
-    strcpy(buffer, ":5000/localhost");
+    if (argc == 1) {
+        strcpy(buffer, ":5000/localhost");
     } else if (argc == 2) {
         strcpy(buffer, argv[1]); //10.1.34.241
         strcat(buffer, ":5000/localhost");
@@ -60,6 +60,21 @@ int main(int argc, int * argv[]) {
     puts("Stock of papa?");
     stockPapa = getStockFromDB(con,"papa\0",getpid());
     printf("second stock %d\n", stockPapa);
+
+
+    //START BUY
+    puts("Trying to sell 1");
+    printf("before selling i got %d papas\n", stock->last);
+    int mygain;
+    res = sendSellTransaction(con, "papa\0", 1, 0, stock,&mygain,pid);
+    printf("after selling %d, i got %d papas\n",mygain, stock->last);
+
+    //END BUY
+
+    puts("Stock of papa?");
+    stockPapa = getStockFromDB(con,"papa\0",getpid());
+    printf("second stock %d\n", stockPapa);
+
 
     puts("END TRANSACTION");
 
