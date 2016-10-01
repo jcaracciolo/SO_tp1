@@ -3,8 +3,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 #include "../Server/Coms/coms.h"
 #include "../Server/Marshalling/marsh.h"
 #include "../Server/DB/UUID_DataBase/data_types.h"
@@ -14,20 +14,28 @@
 #define MAX_BUF 300
 
 
-int main() {
-    char hostname[MAX_BUF];
+
+int main(int argc, int * argv[]) {
     char buffer[MAX_BUF];
+
+    if (argc == 1) {        
+    strcpy(buffer, ":5000/localhost");
+    } else if (argc == 2) {
+        strcpy(buffer, argv[1]); //10.1.34.241
+        strcat(buffer, ":5000/localhost");
+    } else {
+        puts("Invalid quantity of arguments");
+        exit(1);
+    }
+
+    puts(buffer);
+
+    connection *con = connectToAddres(buffer);
+
     UUIDStock * stock = malloc(sizeof(UUIDStock));
     stock->size = 0;
     stock->last = 0;
     stock->uuids = NULL;
-
-    gethostname(hostname, MAX_BUF);
-
-    gethostname(hostname, 250);
-    strcpy(buffer, "12352.");
-    strcat(buffer, "localhost");
-    connection *con = connect(buffer);
 
     puts("Price of papa?");
     int pricePapa = getPriceFromDB(con,"papa");

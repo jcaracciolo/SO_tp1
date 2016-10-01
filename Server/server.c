@@ -2,27 +2,32 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <semaphore.h>
+#include <signal.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <pthread.h>
+#include <time.h>
 #include "Coms/coms.h"
 #include "server.h"
 #include "DB/SQlite/SQLparser.h"
 #include "DB/UUID_DataBase/DB.h"
 #include "Marshalling/marsh.h"
+#include "Logs/log.h"
 
 #define PATHDBIN "/tmp/fifoDBserverIN"
 #define PATHDBOUT "/tmp/fifoDBserverOut"
-
 #define MAX_BUF 300
 #define UUID_CANT 100
 
 dbdata_t* DBdata;
 char* addrname;
 sem_t* semid;
+int msqid;
+
+
 
 
 void createChild(connection * con) {
@@ -40,6 +45,7 @@ void attPriceTransaction(connection * con){
 		char prodName[MAX_PROD_NAME_LENGHT];
 		sendACK(con);
 		receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
+
 		int price = getPrice(DBdata, prodName);
 		sendInt(con, price);
 }
@@ -71,12 +77,12 @@ void attBuyTransaction(connection * con){
     tdata.size=amount;
     pthread_t UUIDthread;
 
-    int err = pthread_create(&(UUIDthread), NULL, &getNUUID, &tdata);
+    int err = pthread_create(&(UUIDthread), NULL, &getNUUID, (void *)&tdata);
     if (err != 0) {
         //TODO make something
     }
 
-    sem_t* semid=sem_open(addrname,0);
+    sem_t* semid=sem_open("SB",0);
     sem_wait(semid);
 
     //TODO get from DB
@@ -84,7 +90,6 @@ void attBuyTransaction(connection * con){
     int price = getPrice(DBdata, prodName);
 		printf("price per papa %d\n", price);
     int stock = getStock(DBdata, prodName);
-		//Check if the client is not overpaying and is not trying to buy too much
     if (price * amount <= maxPay && stock >= amount && amount<=MAX_UUIDS_PER_ARRAY) {
             printf("amount: %i\n", amount);
             printf("old Stock: %i\n", stock);
@@ -119,7 +124,8 @@ void attBuyTransaction(connection * con){
 }
 
 int getNUUID(UUIDArray* tofill){
-    for(int i=0;i<tofill->size;i++){
+    int i;
+    for(i=0;i<tofill->size;i++){
         tofill->uuids[i]=getRandomUUID();
     }
     return 0;
@@ -196,7 +202,25 @@ void assist(connection* con) {
 int main(int argc, char *argv[]) {
     char hostname[MAX_BUF];
 
+    struct sigaction sigchld_action = {
+            .sa_handler = SIG_DFL,
+            .sa_flags = SA_NOCLDWAIT
+    };
+    sigaction(SIGCHLD, &sigchld_action, NULL);
     srand(0);
+
+
+    int key = ftok("Logs/log", 'A');
+    if ((msqid = msgget(key, 0666)) == -1) {
+        perror("Coudnt connect to the log");
+    }
+
+    msgbuf_t m;
+    m.mtype=2;
+    strcpy(m.message,"AAAA");
+    msgsnd(msqid,&m,sizeof(m),0);
+    puts("SDADSA");
+    printf("%d\n",key);
 
     DBdata=malloc(sizeof(dbdata_t));
     addrname=calloc(MAX_BUF,1);
@@ -207,10 +231,9 @@ int main(int argc, char *argv[]) {
     puts("Initializing synchronization");
 
     sem_t* sem;
-    strcpy(addrname,"12352.");
-    strcat(addrname,"localhost");
+    strcpy(addrname,"10.1.34.241:5000/localhost");
 
-    sem=sem_open(addrname,O_CREAT,0600,1);
+    sem=sem_open("SB",O_CREAT,0600,1);
 
     if(sem==SEM_FAILED){
         perror("Error initializing synchronization");
@@ -223,21 +246,38 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
+    clock_t begin=clock();
     while (1) {
     	connection * con = readNewConnection(serverFD);
     	if(con!=NULL){
     		createChild(con);
-    	} else {
-            // server do his stuff...
+    	} else if((clock() - begin) > 500 ){
+//            printf("\e[1;1H\e[2J");
+//            drawChart();
+//            begin=clock();
+//
         }
     }
 
 	return 0;
 }
 
+void drawChart(){
+    int stock=getStock(DBdata,"papa");
+    int price=getPrice(DBdata,"papa");
+    printf("papas | %d | %d ",stock,price);
+    int i;
+    for(i=0;i<stock;i++){
+        printf("----");
+    }
+    puts("");
+
+
+}
+
 void initializeDB(dbdata_t * DBdata) {
     createTable(DBdata);
-    insertIntoTable(DBdata, "papa", 8, 3);
+    insertIntoTable(DBdata, "papa", 8000000, 3);
 }
 
 int connectDB(dbdata_t* DBdata){
