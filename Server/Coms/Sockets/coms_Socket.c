@@ -104,6 +104,10 @@ int openAdress(char * addr) {
 	return sockfd;
 }
 
+void openConnection(connection* con){
+
+}
+
 connection * readNewConnection(int fd) {	
 	connection * con = malloc(sizeof(connection));
 	struct sockaddr_in connectedSocket;
@@ -124,7 +128,7 @@ connection * readNewConnection(int fd) {
 	con->sockFD = accept(fd, (struct sockaddr *) &connectedSocket, &socklen); // waiting for client to connect
 	if (con->sockFD < 0) {
 		puts("ERROR on accept");
-		exit(1);
+		return NULL;
 	}
 	return con;
 }
