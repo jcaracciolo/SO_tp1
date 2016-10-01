@@ -7,9 +7,14 @@
 //Amount of time in seconds it will wait until it tries again to connect
 #define CONN_TRY_INT
 
+#define INITIALERROR 100
+
 typedef struct adress_t address;
 
 typedef struct connection_t connection;
+
+typedef enum  {NOSTOCK=INITIALERROR,MAXUUIDS, MOREMONEY, LESSMONEY, INVALIDUUID} conerrors_t;
+
 
 //establishes a connection to the address
 connection * connect(char * addr);
@@ -65,4 +70,6 @@ int getBuySellInfo(connection* con,int* client, char* prodName, int* amount,int*
 int getRequestedProduct(connection* con,int* client,char* prodName);
 
 void completePurchase(connection* con,UUIDArray* data,int payed);
+
+
 #endif

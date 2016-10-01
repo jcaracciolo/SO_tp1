@@ -14,6 +14,11 @@
 #define MAX_BUF 300
 
 
+char *conerrors[5]={   "Insufficient stock for that product",
+                       "Amount of units surpass maximum limit",
+                       "Money provided not enough for the transaction",
+                       "Products worth less than required",
+                       "UUIDS invalid"};
 
 int main(int argc, char * argv[]) {
     char buffer[MAX_BUF];
@@ -74,6 +79,15 @@ int main(int argc, char * argv[]) {
     puts("Stock of papa?");
     stockPapa = getStockFromDB(con,"papa\0",getpid());
     printf("second stock %d\n", stockPapa);
+
+    puts("Trying to buy at 0$");
+    printf("before buying i got %d papas\n", stock->last);
+    res = sendBuyTransaction(con, "papa\0", 3, 0, stock,&totalPrice,pid);
+    if(res!=0){
+        printf("%s\n",conerrors[res-100]);
+    }
+    printf("after paying %d, i got %d papas\n",totalPrice, stock->last);
+
 
 
     puts("END TRANSACTION");

@@ -114,28 +114,32 @@ void attBuyTransaction(connection * con){
         buyRealised = 1;
 
     } else{
+        sem_post(sem);
         if(price * amount > maxPay) {
             sprintf(buff, "Buy transaction from %d - Given money($ %d ) no enough, requires %d",client, maxPay,
                     price * amount);
             log(WARNING, buff);
+            sendInt(con,MOREMONEY);
+            return MOREMONEY;
         }
 
         if(stock < amount) {
             sprintf(buff, "Buy transaction from %d - Given stock ( %d ) not enough, required %d",client, stock,amount);
             log(WARNING, buff);
+            sendInt(con,STOCK);
+            return STOCK;
         }
 
         if(amount > MAX_UUIDS_PER_ARRAY) {
             sprintf(buff, "Buy transaction from %d - purchase too big (%d). Max amount per purchase: %d",client, amount,MAX_UUIDS_PER_ARRAY);
             log(WARNING, buff);
+            sendInt(con,MAXUUIDS);
+            return MAXUUIDS;
         }
 
     }
 
     sem_post(sem);
-
-
-
 
     void* ret;
     pthread_join(UUIDthread, &ret);
@@ -194,14 +198,18 @@ void attSellTransaction(connection * con){
         sellRealised = 1;
     } else{
         if(price * amount < minPay) {
+            sendInt(con,LESSMONEY);
             sprintf(buff, "Sell transaction from %d - Cannot reach minimal payment($ %d ), cost is  %d",client, minPay,
                     price * amount);
             log(WARNING, buff);
+            return LESSMONEY;
         }
 
         if(amount > MAX_UUIDS_PER_ARRAY) {
             sprintf(buff, "Sell transaction from %d - transaction too big (%d). Max amount per purchase: %d",client, amount,MAX_UUIDS_PER_ARRAY);
             log(WARNING, buff);
+            sendInt(con,MAXUUIDS);
+            return MAXUUIDS;
         }
 
     }
@@ -211,7 +219,7 @@ void attSellTransaction(connection * con){
     pthread_join(UUIDthread, &ret);
 
 
-    if(ret==0 && sellRealised){
+    if(ret==0){
         //tell the client the transaction went through and receive confirmation
         sendTransType(con,OK);
         receiveACK(con);
@@ -220,7 +228,10 @@ void attSellTransaction(connection * con){
         sprintf(buff, "Sell transaction from %d - %d of %s sold correctly at %d",client,amount,prodName,amount*price);
         log(INFO, buff);
     }else{
-        sendTransType(con,ERROR);
+        sendInt(con,INVALIDUUID);
+        sprintf(buff, "Sell transaction from %d - Invalid UUIDS",client);
+        log(WARNING, buff);
+        return INVALIDUUID;
     }
 }
 
@@ -272,8 +283,8 @@ void assist(connection* con) {
                             break;
                         case CLOSE:
                             printf("finished transaction\n");
-                            endConnection(con);
                             sem_close(sem);
+                            endConnection(con);
                             // Closing assistant
                             // close(con)
                             exit(0);
@@ -369,6 +380,7 @@ int main(int argc, char *argv[]) {
     	if(con!=NULL){
             log(INFO,"new client connected");
     		createChild(con);
+            sem_close(sem);
     	} else if((clock() - begin) > 500 ){
 //            printf("\e[1;1H\e[2J");
 //            drawChart();
