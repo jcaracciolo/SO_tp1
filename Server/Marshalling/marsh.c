@@ -4,6 +4,8 @@
 #include <string.h>
 #include "marsh.h"
 #include "../Coms/coms.h"
+void printStock(UUIDStock * stock);
+void addUUIDsToStock(UUIDStock * stock, UUIDStock * newUUIDS);
 
 connection * connect(char * addr){
   return connectToAddres(addr);
@@ -45,8 +47,10 @@ int receiveInt(connection * con){
     return *(int*)(numHolder);
 }
 
-int sendUUIDArray(connection * con, UUIDArray * array){
+int sendUUIDArray(connection * con, UUIDArray * array, int totalCost){
   sendBytes(con,(char*)array->uuids, sizeof(UUID)*array->size);
+  receiveACK(con);
+  sendInt(con,totalCost);
   return 0;
 
 }
@@ -55,11 +59,12 @@ UUIDStock* receiveUUIDArray(connection * con, int n,int* cost){
     UUIDStock* ans=malloc(sizeof(UUIDStock));
     ans->uuids=malloc(sizeof(UUID)*n);
 
+    // printf("recieved UUIDS:\n");
     int read=receiveBytes(con,(char*)ans->uuids,sizeof(UUID)*n);
     ans->size=n;
     ans->last=read/sizeof(UUID);
 
-    sendInt(con,ACKNOWLEDGE);
+    sendACK(con);
     *cost=receiveInt(con);
 
     return ans;
@@ -90,6 +95,8 @@ int getPriceFromDB(connection * con, char * prodName){
   return receiveInt(con);
 }
 
+
+
 int getStockFromDB(connection * con, char * prodName){
   sendTransType(con, STOCK);
   receiveACK(con);
@@ -97,14 +104,16 @@ int getStockFromDB(connection * con, char * prodName){
   return receiveInt(con);
 }
 
+//This sends a buy transaction to the conection. Returns 1 if succesful
+// and 0 if not succesful. This is used exclusively by the client.
 int sendBuyTransaction( connection * con, char * prodName,int amount,
-                        int maxPrice, UUIDStock * stock){
+                        int maxPrice, UUIDStock * stock, int * finalCost){
 
   sendTransType(con,BUY);
   receiveACK(con);
 
   //Receive prodname and send ack
-  sendString(con, "papa\0");
+  sendString(con,prodName);
   receiveACK(con);
 
   //Send amount of product to buy
@@ -114,43 +123,72 @@ int sendBuyTransaction( connection * con, char * prodName,int amount,
   sendInt(con,maxPrice);
 
   if(receiveTransType(con) == OK){
-    printf("The trying to send uuids:\n");
-    int cost;
+    // printf("The trying to send uuids:\n");
     sendACK(con);
-    UUIDStock *ans=receiveUUIDArray(con,amount,&cost);
+    UUIDStock *ans=receiveUUIDArray(con,amount,finalCost);
 
-    printf("recieved UUIDS:\n");
-    for(int i=0;i<ans->last;i++){
-      printf("%ld - %ld\n",ans->uuids[i].high,ans->uuids[i].low);
-    }
-    printf("previous local UUIDS:\n");
-    for(int i=0;i<stock->last;i++){
-      printf("%ld - %ld\n",stock->uuids[i].high,stock->uuids[i].low);
-    }
+    // printf("recieved UUIDS:\n");
+    // printStock(ans);
 
-    if(stock->size < amount + stock->last ){
-      stock->uuids = realloc( stock->uuids,  stock->size * 2 * sizeof(UUID));
-    }
-    memcpy(stock->uuids + stock->last * sizeof(UUID), ans->uuids, amount * sizeof(UUID));
-    stock->size = stock->size * 2;
-    stock->last = stock->last + ans->last ;
+    // printf("previous local UUIDS:\n");
+    // printStock(stock);
 
-    printf("%d after local UUIDS:\n",stock->last);
-    for(int i=0;i<stock->last;i++){
-      printf("%ld - %ld\n",stock->uuids[i].high,stock->uuids[i].low);
-    }
-    sendACK(con);
+    addUUIDsToStock(stock,ans);
+
+    // printf("%d after local UUIDS:\n",stock->last);
+    // printStock(stock);
     //receive total amount payed
-    printf("sent ack\n");
-    int total = receiveInt(con);
-    printf("Total i payed: %d\n",total);
+    // printf("sent ack\n");
+    // int total = receiveInt(con);
+    // receiveACK(con);
+    // printf("Total i payed: %d\n",*finalCost  );
 
+    // printf("The transaction went through:\n");
     sendACK(con);
-    printf("The transaction went through:\n");
+    //This means the transaction went through
+    return 1;
   } else {
-    printf("The transaction didnt go through:\n");
+    // printf("The transaction didnt go through:\n");
+  }
+  sendACK(con);
+  //This means the transaction didnt go through
+  return 0;
+}
+
+void printStock(UUIDStock * stock){
+  for(int i=0;i<stock->last;i++){
+    printf("%ld - %ld\n",stock->uuids[i].high,stock->uuids[i].low);
+  }
+}
+
+void addUUIDsToStock(UUIDStock * stock, UUIDStock * newUUIDS){
+  //DEBUGGING PRINTF AND LINES THAT MIGHT BE USEFULL SOMEDAY
+  // printf("last: %d, size: %d\n",stock->last,stock->size);
+  // printf("last: %d, size: %d\n",newUUIDS->last,newUUIDS->size);
+  //
+  // // printf("what i see in stock:\n");
+  // // printStock(stock);
+  // //
+  // // printf("waht i see in new:\n");
+  // // printStock(newUUIDS);
+  // printf("stock %p, skip %d",stock->uuids,(newUUIDS->last * sizeof(UUID)));
+  // printf("%ld \n",newUUIDS->uuids[0].high);
+  // // memcpy( stock->uuids + (stock->last * sizeof(UUID)),
+  // //         newUUIDS->uuids, newUUIDS->last * sizeof(UUID));
+  // printf("last: %d, size: %d\n",stock->last,stock->size);
+
+  if(stock->size < newUUIDS->last + stock->last){
+    stock->uuids = realloc( stock->uuids,
+                            (newUUIDS->last + stock->last + 1 ) * sizeof(UUID));
+  }
+  int off = stock->last;
+  for (size_t i = 0; i < newUUIDS->last; i++) {
+      stock->uuids[i + off].high = newUUIDS->uuids[i].high;
+      stock->uuids[i + off].low = newUUIDS->uuids[i].low;
   }
 
+  stock->size = newUUIDS->last + stock->last + 1;
+  stock->last = stock->last + newUUIDS->last ;
 
-  return 1;
+  free(newUUIDS);
 }

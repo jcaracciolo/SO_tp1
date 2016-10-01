@@ -31,27 +31,25 @@ int main() {
 
     puts("Price of papa?");
     int pricePapa = getPriceFromDB(con,"papa");
-    printf("adada %d\n", pricePapa);
+    printf("price of papa %d\n", pricePapa);
 
     puts("Stock of papa?");
     int stockPapa = getStockFromDB(con,"papa");
-    printf("first stock %d\n", pricePapa);
+    printf("first stock %d\n", stockPapa);
 
-    puts("Stock of papa?");
-    stockPapa = getStockFromDB(con,"papa");
-    printf("first stock %d\n", pricePapa);
 
     //START BUY
     puts("Trying to buy 2");
     printf("before buying i got %d papas\n", stock->last);
-    int res = sendBuyTransaction(con, "papa\0", 2, 10, stock);
-    printf("after buying i got %d papas\n", stock->last);
+    int totalPrice,res;
+    res = sendBuyTransaction(con, "papa\0", 3, 20, stock,&totalPrice);
+    printf("after paying %d, i got %d papas\n",totalPrice, stock->last);
 
     //END BUY
 
     puts("Stock of papa?");
     stockPapa = getStockFromDB(con,"papa\0");
-    printf("second stock %d\n", pricePapa);
+    printf("second stock %d\n", stockPapa);
 
     puts("END TRANSACTION");
 
