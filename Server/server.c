@@ -25,7 +25,7 @@
 
 dbdata_t* DBdata;
 char* addrname;
-sem_t* semid;
+sem_t* sem;
 int msqid;
 
 
@@ -54,7 +54,9 @@ void attPriceTransaction(connection * con){
     char prodName[MAX_PROD_NAME_LENGHT];
 	receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
 
+    sem_wait(sem);
 	int price = getPrice(DBdata, prodName);
+    sem_post(sem);
 	sendInt(con, price);
 }
 void attStockTransaction(connection * con){
@@ -70,7 +72,9 @@ void attStockTransaction(connection * con){
     char prodName[MAX_PROD_NAME_LENGHT];
     receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
 
+    sem_wait(sem);
     int price = getStock(DBdata, prodName);
+    sem_post(sem);
     sendInt(con, price);
 }
 void attBuyTransaction(connection * con){
@@ -104,9 +108,7 @@ void attBuyTransaction(connection * con){
     }
 
 
-    sem_t* semid=sem_open(SEMNAME,0);
-    sem_wait(semid);
-    printf("%d semid\n",semid);
+    sem_wait(sem);
     short buyRealised = 0;
     int price = getPrice(DBdata, prodName);
     int stock = getStock(DBdata, prodName);
@@ -142,13 +144,8 @@ void attBuyTransaction(connection * con){
 
     }
 
+    sem_post(sem);
 
-
-
-    sem_post(semid);
-    sem_close(semid);
-
-    printf("%d sem OK\n",semid);
 
 
 
@@ -170,7 +167,6 @@ void attBuyTransaction(connection * con){
         // sendInt(con,7);
         // fflush(NULL);
         // sendACK(con);
-        printf("SDADSA");
         sprintf(buff, "Buy transaction from %d - %d of %s purchased correctly at %d",client,amount,prodName,amount*price);
         log(INFO, buff);
     }else{
@@ -212,10 +208,10 @@ void attSellTransaction(connection * con){
         //TODO make something
     }
 
-    sem_t* semid=sem_open(SEMNAME,0);
-    sem_wait(semid);
+    sem_wait(sem);
     short sellRealised = 0;
     int price = getPrice(DBdata, prodName);
+
     int stock = getStock(DBdata, prodName);
     if (price * amount >= minPay && amount<=MAX_UUIDS_PER_ARRAY) {
 
@@ -239,14 +235,12 @@ void attSellTransaction(connection * con){
         }
 
     }
-    sem_post(semid);
-    sem_close(semid);
+    sem_post(sem);
 
     void* ret;
     pthread_join(UUIDthread, &ret);
     sendACK(con);
 
-    printf("thread returned %d\n",ret);
 
     if(ret==0 && sellRealised){
         //tell the client the transaction went through and receive confirmation
@@ -289,6 +283,7 @@ void* readNUUID(threadData* t){
 
 
 void assist(connection* con) {
+    sem=sem_open(SEMNAME,0);
     while (1) {
 
                 pthread_t UUIDthread;
@@ -310,6 +305,7 @@ void assist(connection* con) {
                         case CLOSE:
                             printf("finished transaction\n");
                             endConnection(con);
+                            sem_close(sem);
                             // Closing assistant
                             // close(con)
                             exit(0);
@@ -384,7 +380,6 @@ int main(int argc, char *argv[]) {
 
     puts("Initializing synchronization");
     //initializing semaphores
-    sem_t* sem;
     sem=sem_open(SEMNAME,O_CREAT,0600,1);
     if(sem==SEM_FAILED){
         perror("Error initializing synchronization");
