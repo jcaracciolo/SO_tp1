@@ -119,7 +119,7 @@ void attBuyTransaction(connection * con){
         updateStock(DBdata, prodName, stock - amount);
         printf("New Stock: %i\n", getStock(DBdata, prodName));
 
-        sprintf(buff,"Buy transaction from %d - %s stock: %d price: %d checks out",client,prodName,stock,price);
+        sprintf(buff,"Buy transaction from %d - %s stock: %d out of %d price: %d out of %d checks out",client,prodName,amount,stock,maxPay,price*amount);
         log(INFO,buff);
         buyRealised = 1;
 
@@ -152,7 +152,7 @@ void attBuyTransaction(connection * con){
 
 
 
-    int ret;
+    void* ret;
     pthread_join(UUIDthread, &ret);
 
 
@@ -223,7 +223,7 @@ void attSellTransaction(connection * con){
         printf("old Stock: %i\n", stock);
         updateStock(DBdata, prodName, stock + amount);
         printf("New Stock: %i\n", getStock(DBdata, prodName));
-        sprintf(buff,"Sell transaction from %d - %s stock: %d price: %d checks out",client,prodName,stock,price);
+        sprintf(buff,"Sell transaction from %d - %s stock: %d out of %d price: %d out of %d checks out",client,prodName,amount,stock,minPay,price);
         log(INFO,buff);
         sellRealised = 1;
     } else{
@@ -242,12 +242,8 @@ void attSellTransaction(connection * con){
     sem_post(semid);
     sem_close(semid);
 
-    int ret;
-    printf("client %d\n",client);
-    printf("amount %d\n",amount);
+    void* ret;
     pthread_join(UUIDthread, &ret);
-    printf("client %d\n",client);
-    printf("amount %d\n",amount);
     sendACK(con);
 
     printf("thread returned %d\n",ret);
@@ -273,7 +269,7 @@ void* getNUUID(UUIDArray* tofill){
     for(i=0;i<tofill->size;i++){
         tofill->uuids[i]=getRandomUUID();
     }
-    return 0;
+    return (void*)0;
 }
 
 void* readNUUID(threadData* t){
@@ -283,10 +279,10 @@ void* readNUUID(threadData* t){
 
     for(i=0;i<recieved->last;i++){
         if(!UUIDcontains(recieved->uuids[i]))
-            return 1;
+            return (void*)1;
     }
 
-   return 0;
+   return (void*)0;
 
 }
 
