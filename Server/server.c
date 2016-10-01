@@ -39,7 +39,9 @@ void createChild(connection * con) {
         openConnection(con);
 		assist(con);
 		printf("Child fork failed\n");
-	}
+	} else {
+        endConnection(con);
+    }
 }
 
 void attPriceTransaction(connection * con){
@@ -285,6 +287,7 @@ void* readNUUID(threadData* t){
 
 void assist(connection* con) {
     sem=sem_open(SEMNAME,0);
+    
     while (1) {
 
                 pthread_t UUIDthread;
