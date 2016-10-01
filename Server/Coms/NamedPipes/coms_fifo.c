@@ -10,7 +10,6 @@
 
 #define MAX_BUF 300
 
-
 struct adress_t {
 	char * path; // '\0' ended
 };
@@ -119,24 +118,40 @@ connection * readNewConnection(int fd) {
     con->outPath = calloc(MAX_BUF, 1);
 
 
-    char buf[MAX_BUF];
-	buf[0] = 0;
+    char buf[MAX_BUF]={0};
 
-	read(fd, buf, MAX_BUF);
-
-	int i,j;
-	for(i=0;buf[i] != '\n';i++){
-		con->inPath[i] = buf[i];
+	int in=1,i;
+	char aux=1;
+	for(i=0;aux!='\0';i++){
+		read(fd,&aux, 1);
+		if(aux!='\n') {
+			if (in) {
+				con->inPath[i] = aux;
+			} else {
+				con->outPath[i] = aux;
+			}
+		}else{
+			con->inPath[i] = '\0';
+			in=0;
+			i=-1;
+		}
 	}
-	con->inPath[i++] = '\0';
+	con->outPath[i] = '\0';
+	
+//	printf("se leyo %s\n",buf);
+//	read(fd, buf, MAX_BUF);
+//
+//	int i,j;
+//	for(i=0;buf[i] != '\n';i++){
+//		con->inPath[i] = buf[i];
+//	}
+//	con->inPath[i++] = '\0';
+//
+//	for(j=0;buf[i] != '\0';j++,i++){
+//		con->outPath[j] = buf[i];
+//	}
+//	con->outPath[j] = '\0';
 
-	for(j=0;buf[i] != '\0';j++,i++){
-		con->outPath[j] = buf[i];
-	}
-	con->outPath[j] = '\0';
-
-	con->inFD=open(con->inPath,O_RDONLY);
-	con->outFD=open(con->outPath,O_WRONLY);
 	return con;
 }
 
@@ -151,5 +166,9 @@ int receiveBytes(connection * con, char * buffer, int length) {
 void endConnection(connection * con) {	
 	close(con->inFD);
 	close(con->outFD);
-	//close(con) <--- Falta hacer
+}
+
+void openConnection(connection* con){
+	con->inFD=open(con->inPath,O_RDONLY);
+	con->outFD=open(con->outPath,O_WRONLY);
 }

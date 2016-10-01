@@ -36,6 +36,7 @@ void createChild(connection * con) {
 
 	if ((childPID = fork()) == 0) {
 		// Child
+        openConnection(con);
 		assist(con);
 		printf("Child fork failed\n");
 	}
