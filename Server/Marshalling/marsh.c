@@ -7,9 +7,9 @@
 void printStock(UUIDStock * stock);
 void addUUIDsToStock(UUIDStock * stock, UUIDStock * newUUIDS);
 
-connection * connect(char * addr){
-  return connectToAddres(addr);
-}
+// connection * connect(char * addr){
+//   return connectToAddres(addr);
+// }
 
 int disconnect(connection * con){
   sendTransType(con, CLOSE);
@@ -162,7 +162,8 @@ int sendBuyTransaction( connection * con, char * prodName,int amount,
 }
 
 void printStock(UUIDStock * stock){
-  for(int i=0;i<stock->last;i++){
+  int i;
+  for(i=0;i<stock->last;i++){
     printf("%ld - %ld\n",stock->uuids[i].high,stock->uuids[i].low);
   }
 }
@@ -188,7 +189,8 @@ void addUUIDsToStock(UUIDStock * stock, UUIDStock * newUUIDS){
                             (newUUIDS->last + stock->last + 1 ) * sizeof(UUID));
   }
   int off = stock->last;
-  for (size_t i = 0; i < newUUIDS->last; i++) {
+  size_t i;
+  for (i = 0; i < newUUIDS->last; i++) {
       stock->uuids[i + off].high = newUUIDS->uuids[i].high;
       stock->uuids[i + off].low = newUUIDS->uuids[i].low;
   }
