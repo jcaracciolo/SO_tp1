@@ -16,14 +16,18 @@ MARSHh= $(wildcard $(MARSHPath)/*.h)
 
 OBJ= $(subst $(COMPath),.,$(COMS:.c=.o))
 OBJ+= $(subst $(MARSHPath),.,$(MARSH:.c=.o))
-OBJ+= client.o
 
 .PHONY: clean all
 
 all:
 	gcc -c $(COMS)  $(MARSH) $(COMSh) client.c
-	gcc -o ./client $(OBJ)
+	gcc $(OBJ) client.o -o client
+	rm *.o
+
+	gcc -c $(COMS)  $(MARSH) $(COMSh) user.c
+	gcc $(OBJ) user.o -o user
 	rm *.o
 
 clean:
 	rm -f client
+	rm -f user
