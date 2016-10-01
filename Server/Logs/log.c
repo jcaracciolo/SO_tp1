@@ -9,59 +9,81 @@
 #define MAX_BUFFER 300
 #define LOG "log-"
 
-int main(){
+int main(int argc, char *argv[]){
 
-    time_t now;
+
+    if(argc<2){
+        puts("ERROR NO FILE TO CONNECT");
+        exit(1);
+    }
+    //Given File for creation by argument
+    int key = ftok(argv[1], 'A');
+    int msqid = msgget(key, 0666 | IPC_CREAT);
+    if (msqid == -1) {
+        perror("ERROR OPENING QUEUE");
+        exit(0);
+    }
+
+    char filetime[MAX_BUFFER]={0};
+    char buf[MAX_BUFFER]={0};
     struct tm *ts;
-    char buf[MAX_BUFFER];
-
+    time_t now;
+    //Creating log file name
     now = time(0);
-
     ts = localtime(&now);
-    strcpy(buf,LOG);
-    strftime(buf+strlen(LOG), sizeof(buf), "%Y-%m-%d_%H:%M:%S", ts);
-
+    strftime(filetime, sizeof(filetime), "%Y-%m-%d_%H:%M:%S", ts);
+    strcat(buf,"Logs/");
+    strcat(buf+strlen(buf),LOG);
+    strcat(buf+strlen(buf),filetime);
     FILE* log=fopen(buf,"w");
 
-    fprintf(log,"INITIALIZE LOG OF %s\n",buf+strlen(LOG));
+    //initialize
+    fprintf(log,"INITIALIZE LOG OF %s\n",filetime);
+    fflush(log);
 
-    int key = ftok("log", 'A');
-    int msqid = msgget(key, 0666 | IPC_CREAT);
-    printf("%d\n",key);
 
     msgbuf_t msg;
     int ans=0;
-    do{
-        memset(&msg, 0, sizeof(msg));
-        ans=msgrcv(msqid, &msg, sizeof(msgbuf_t), MERROR, 0);
 
-        if(ans==0){
-            ans=msgrcv(msqid, &msg, sizeof(msgbuf_t), WARNING, 0);
+    //waiting for queue to open
+    msgrcv(msqid,&msg,sizeof(msg),0,0);
+
+    do{
+        if(ans!=0 && ans!=-1) memset(&msg, 0, sizeof(msg));
+
+        ans=0;
+
+        //Checks msg in order
+        ans=msgrcv(msqid, &msg, sizeof(msgbuf_t), MERROR, MSG_NOERROR | IPC_NOWAIT);
+
+        if(ans==0 || ans==-1){
+            ans=msgrcv(msqid, &msg, sizeof(msgbuf_t), WARNING, MSG_NOERROR | IPC_NOWAIT);
         }
 
-        if(ans==0){
-            ans=msgrcv(msqid, &msg, sizeof(msgbuf_t), INFO, 0);
+        if(ans==0 || ans==-1){
+            ans=msgrcv(msqid, &msg, sizeof(msgbuf_t), INFO, MSG_NOERROR | IPC_NOWAIT);
         }
 
         switch((int)msg.mtype){
             case MERROR:
                 fprintf(log,"ERROR: ");
-                printf("ERROR: ");
                 break;
             case WARNING:
                 fprintf(log,"WARNING: ");
-                printf("WARNING: ");
                 break;
             case INFO:
                 fprintf(log,"INFO: ");
-                printf("INFO: ");
+                break;
+            default:
                 break;
         }
 
-        fprintf(log,"%s\n",msg.message);
-        printf("%s\n",msg.message);
+        if(ans!=0 && ans!=-1){
+            fprintf(log,"%s\n",msg.message);
+            fflush(log);
+        }
 
-    }while(ans==0 || strcmp(msg.message,"end of log")!=0);
+    }while(ans==0 || ans==-1 || strcmp(msg.message,"end of log")!=0);
 
     fclose(log);
     msgctl(msqid, IPC_RMID, NULL);

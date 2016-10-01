@@ -21,6 +21,7 @@
 #define PATHDBOUT "/tmp/fifoDBserverOut"
 #define MAX_BUF 300
 #define UUID_CANT 100
+#define SEMNAME "sem"
 
 dbdata_t* DBdata;
 char* addrname;
@@ -82,7 +83,7 @@ void attBuyTransaction(connection * con){
         //TODO make something
     }
 
-    sem_t* semid=sem_open("SB",0);
+    sem_t* semid=sem_open(SEMNAME,0);
     sem_wait(semid);
 
     //TODO get from DB
@@ -198,51 +199,63 @@ void assist(connection* con) {
     }
 }
 
+void log(int priority,char* message){
+    msgbuf_t msg;
+    msg.mtype=priority;
+    strcpy(msg.message,message);
+    msgsnd(msqid,&msg,sizeof(msg),0);
+}
 
 int main(int argc, char *argv[]) {
+    DBdata=malloc(sizeof(dbdata_t));
+    addrname=calloc(MAX_BUF,1);
     char hostname[MAX_BUF];
+
+    srand(0);
 
     struct sigaction sigchld_action = {
             .sa_handler = SIG_DFL,
             .sa_flags = SA_NOCLDWAIT
     };
     sigaction(SIGCHLD, &sigchld_action, NULL);
-    srand(0);
 
-
-    int key = ftok("Logs/log", 'A');
-    if ((msqid = msgget(key, 0666)) == -1) {
-        perror("Coudnt connect to the log");
+    int f;
+    puts("Initializing log");
+    if((f=fork())==0){
+        char* ar[3]={"log","DO_NOT_DELETE",NULL};
+        execv("log",ar);
+    }else if(f<0){
+        perror("ERROR CONNECTING LOG");
+        exit(0);
     }
 
-    msgbuf_t m;
-    m.mtype=2;
-    strcpy(m.message,"AAAA");
-    msgsnd(msqid,&m,sizeof(m),0);
-    puts("SDADSA");
-    printf("%d\n",key);
+    int key = ftok("DO_NOT_DELETE",'A');
+    if ((msqid = msgget(key, 0644)) == -1) {
+        perror("ERROR CONNECTING LOG");
+        exit(0);
+    }
+    log(INFO,"open log");
 
-    DBdata=malloc(sizeof(dbdata_t));
-    addrname=calloc(MAX_BUF,1);
+    log(INFO,"Log created");
+    puts("Log connection established");
 
     connectDB(DBdata);
+    log(INFO,"Connection to Database");
     initializeUUID(UUID_CANT);
 
     puts("Initializing synchronization");
 
     sem_t* sem;
-    strcpy(addrname,"10.1.34.241:5000/localhost");
-
-    sem=sem_open("SB",O_CREAT,0600,1);
-
+    sem=sem_open(SEMNAME,O_CREAT,0600,1);
     if(sem==SEM_FAILED){
         perror("Error initializing synchronization");
         exit(1);
     }
 
-	int serverFD = openAdress(addrname);
-	if (serverFD < 0) {
-		printf("Opening server address failed\n");
+    strcpy(addrname,"10.1.34.241:5000/localhost");
+    int serverFD = openAdress(addrname);
+    if (serverFD < 0) {
+        printf("Opening server address failed\n");
 		exit(1);
 	}
 
