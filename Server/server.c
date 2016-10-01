@@ -50,6 +50,8 @@ void attPriceTransaction(connection * con){
 		sendInt(con, price);
 }
 
+
+
 void attBuyTransaction(connection * con){
 
     printf("Attending purchase\n");
@@ -69,7 +71,7 @@ void attBuyTransaction(connection * con){
 
 		//receive max price the client is willing to pay
     int maxPay=receiveInt(con);
-		printf("max price %d\n", amount);
+		printf("max price %d\n", maxPay);
 
     UUIDArray tdata;
     tdata.size=amount;
@@ -86,6 +88,7 @@ void attBuyTransaction(connection * con){
     //TODO get from DB
     short buyRealised = 0;
     int price = getPrice(DBdata, prodName);
+		printf("price per papa %d\n", price);
     int stock = getStock(DBdata, prodName);
     if (price * amount <= maxPay && stock >= amount && amount<=MAX_UUIDS_PER_ARRAY) {
             printf("amount: %i\n", amount);
@@ -107,11 +110,12 @@ void attBuyTransaction(connection * con){
 				sendTransType(con,OK);
 				receiveACK(con);
 
-        sendUUIDArray(con,&tdata);
-				receiveACK(con);
+        sendUUIDArray(con,&tdata,price*amount);
 				//send total amount payed by client
-        sendInt(con,7);
-        sendInt(con,7);
+        // sendInt(con,amount*price);
+        // sendInt(con,7);
+				// fflush(NULL);
+				// sendACK(con);
 				puts("sent total\n");
     }else{
         sendTransType(con,ERROR);

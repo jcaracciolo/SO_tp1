@@ -30,7 +30,7 @@ int sendInt(connection * con, int num);
 int receiveInt(connection * con);
 
 //sends the UUID array to the specified connection
-int sendUUIDArray(connection * con, UUIDArray * array);
+int sendUUIDArray(connection * con, UUIDArray * array, int totalCost);
 
 //recieves a UUID array from the conection and stores it in array
 //Asumes the array is empty.
@@ -54,5 +54,5 @@ int getStockFromDB(connection * con, char * prodName);
 
 //Tries to buy with the determined price
 int sendBuyTransaction( connection * con, char * prodName, int amount,
-                        int maxPrice, UUIDStock * stock);
+                        int maxPrice, UUIDStock * stock, int * finalCost);
 #endif
