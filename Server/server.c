@@ -21,7 +21,7 @@
 #define PATHDBOUT "/tmp/fifoDBserverOut"
 #define MAX_BUF 300
 #define UUID_CANT 100
-#define SEMNAME "semDB"
+#define SEMNAME "semDBss"
 
 dbdata_t* DBdata;
 char* addrname;
@@ -197,6 +197,7 @@ void attSellTransaction(connection * con){
         log(INFO,buff);
         sellRealised = 1;
     } else{
+        sem_post(sem);
         if(price * amount < minPay) {
             sendInt(con,LESSMONEY);
             sprintf(buff, "Sell transaction from %d - Cannot reach minimal payment($ %d ), cost is  %d",client, minPay,
@@ -376,6 +377,9 @@ int main(int argc, char *argv[]) {
 
     clock_t begin=clock();
     while (1) {
+
+        sem=sem_open(SEMNAME,0);
+
     	connection * con = readNewConnection(serverFD);
     	if(con!=NULL){
             log(INFO,"new client connected");
@@ -384,8 +388,11 @@ int main(int argc, char *argv[]) {
     	} else if((clock() - begin) > 500 ){
 //            printf("\e[1;1H\e[2J");
 //            drawChart();
-//            begin=clock();
-//
+                begin=clock();
+                sem_wait(sem);
+            printf("STOCK %d\n",getStock(DBdata,"papa"));
+            sem_post(sem);
+
         }
     }
 
