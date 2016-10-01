@@ -21,7 +21,7 @@
 #define PATHDBOUT "/tmp/fifoDBserverOut"
 #define MAX_BUF 300
 #define UUID_CANT 100
-#define SEMNAME "sem"
+#define SEMNAME "sem10"
 
 dbdata_t* DBdata;
 char* addrname;
@@ -42,37 +42,58 @@ void createChild(connection * con) {
 }
 
 void attPriceTransaction(connection * con){
-		printf("Attending price\n");
-		char prodName[MAX_PROD_NAME_LENGHT];
-		sendACK(con);
-		receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
+    sendACK(con);
 
-		int price = getPrice(DBdata, prodName);
-		sendInt(con, price);
+    int client=receiveInt(con);
+    char buff[MAX_BUF];
+    sprintf(buff,"Attending price for client %d",client);
+    log(INFO,buff);
+
+    sendACK(con);
+
+    char prodName[MAX_PROD_NAME_LENGHT];
+	receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
+
+	int price = getPrice(DBdata, prodName);
+	sendInt(con, price);
 }
+void attStockTransaction(connection * con){
+    sendACK(con);
 
+    int client=receiveInt(con);
+    char buff[MAX_BUF];
+    sprintf(buff,"Attending stock for client %d",client);
+    log(INFO,buff);
 
+    sendACK(con);
 
+    char prodName[MAX_PROD_NAME_LENGHT];
+    receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
+
+    int price = getStock(DBdata, prodName);
+    sendInt(con, price);
+}
 void attBuyTransaction(connection * con){
 
-    printf("Attending purchase\n");
+    sendACK(con);
+    int client=receiveInt(con);
+    sendACK(con);
+
     char prodName[MAX_PROD_NAME_LENGHT];
-
-    sendACK(con);
-
-		//Receive prodname and send ack
+    //Receive prodname and send ack
     receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
-		printf("prodName %s\n", prodName);
     sendACK(con);
 
-		//receive amount of product to buy
+    //receive amount of product to buy
     int amount=receiveInt(con);
-		printf("cantidad %d\n", amount);
-		sendACK(con);
+    sendACK(con);
 
-		//receive max price the client is willing to pay
+    //receive max price the client is willing to pay
     int maxPay=receiveInt(con);
-		printf("max price %d\n", maxPay);
+
+    char buff[MAX_BUF];
+    sprintf(buff,"Attending buy trans for client %d, wanting to buy %d of %s at a max of $ %d ",client,amount,prodName,maxPay);
+    log(INFO,buff);
 
     UUIDArray tdata;
     tdata.size=amount;
@@ -85,21 +106,38 @@ void attBuyTransaction(connection * con){
 
     sem_t* semid=sem_open(SEMNAME,0);
     sem_wait(semid);
-
-    //TODO get from DB
     short buyRealised = 0;
     int price = getPrice(DBdata, prodName);
-		printf("price per papa %d\n", price);
     int stock = getStock(DBdata, prodName);
     if (price * amount <= maxPay && stock >= amount && amount<=MAX_UUIDS_PER_ARRAY) {
-            printf("amount: %i\n", amount);
-            printf("old Stock: %i\n", stock);
-            updateStock(DBdata, prodName, stock - amount);
-            printf("New Stock: %i\n", getStock(DBdata, prodName));
-            buyRealised = 1;
-    } else printf("You want to pay too little or buy too much\n");
 
-    //TODO thread get from UUID
+        printf("amount: %i\n", amount);
+        printf("old Stock: %i\n", stock);
+        updateStock(DBdata, prodName, stock - amount);
+        printf("New Stock: %i\n", getStock(DBdata, prodName));
+        sprintf(buff,"Buy transaction from %d - %s stock: %d price: %d checks out",client,prodName,stock,price);
+        log(INFO,buff);
+        buyRealised = 1;
+    } else{
+        if(price * amount > maxPay) {
+            sprintf(buff, "Buy transaction from %d - Given money($ %d ) no enough, requires %d",client, maxPay,
+                    price * amount);
+            log(WARNING, buff);
+        }
+
+        if(stock < amount) {
+            sprintf(buff, "Buy transaction from %d - Given stock ( %d ) not enough, required %d",client, stock,amount);
+            log(WARNING, buff);
+        }
+
+        if(amount > MAX_UUIDS_PER_ARRAY) {
+            sprintf(buff, "Buy transaction from %d - purchase too big (%d). Max amount per purchase: %d",client, amount,MAX_UUIDS_PER_ARRAY);
+            log(WARNING, buff);
+        }
+
+    }
+
+
     sem_post(semid);
     sem_close(semid);
 
@@ -107,17 +145,18 @@ void attBuyTransaction(connection * con){
     pthread_join(UUIDthread, &ret);
 
     if(ret==0 && buyRealised){
-				//tell the client the transaction went through and receive confirmation
-				sendTransType(con,OK);
-				receiveACK(con);
+        //tell the client the transaction went through and receive confirmation
+        sendTransType(con,OK);
+        receiveACK(con);
 
         sendUUIDArray(con,&tdata,price*amount);
-				//send total amount payed by client
+        //send total amount payed by client
         // sendInt(con,amount*price);
         // sendInt(con,7);
-				// fflush(NULL);
-				// sendACK(con);
-				puts("sent total\n");
+        // fflush(NULL);
+        // sendACK(con);
+        sprintf(buff, "Buy transaction from %d - %d of %s purchased correctly at %d",client,amount,prodName,amount*price);
+        log(INFO, buff);
     }else{
         sendTransType(con,ERROR);
     }
@@ -130,15 +169,6 @@ int getNUUID(UUIDArray* tofill){
         tofill->uuids[i]=getRandomUUID();
     }
     return 0;
-}
-
-void attStockTransaction(connection * con){
-		printf("Attending stock\n");
-		char prodName[MAX_PROD_NAME_LENGHT];
-		sendACK(con);
-		receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
-		int price = getStock(DBdata, prodName);
-		sendInt(con, price);
 }
 
 int validateUUID(char* arg){
@@ -161,7 +191,6 @@ void assist(connection* con) {
                             attStockTransaction(con);
                             break;
                         case SELL:
-
                             if (err != 0) {
                                 //TODO make something
                             }
@@ -213,11 +242,13 @@ int main(int argc, char *argv[]) {
 
     srand(0);
 
+    // Setting signal no to wait for children process
     struct sigaction sigchld_action = {
             .sa_handler = SIG_DFL,
             .sa_flags = SA_NOCLDWAIT
     };
     sigaction(SIGCHLD, &sigchld_action, NULL);
+
 
     int f;
     puts("Initializing log");
@@ -234,17 +265,19 @@ int main(int argc, char *argv[]) {
         perror("ERROR CONNECTING LOG");
         exit(0);
     }
-    log(INFO,"open log");
 
+    log(INFO,"open log");
     log(INFO,"Log created");
-    puts("Log connection established");
+    puts("Log connection established\n");
+
 
     connectDB(DBdata);
-    log(INFO,"Connection to Database");
+
     initializeUUID(UUID_CANT);
 
-    puts("Initializing synchronization");
 
+    puts("Initializing synchronization");
+    //initializing semaphores
     sem_t* sem;
     sem=sem_open(SEMNAME,O_CREAT,0600,1);
     if(sem==SEM_FAILED){
@@ -252,6 +285,8 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
+    //Opening server
+    puts("Opening server address\n");
     strcpy(addrname,"10.1.34.241:5000/localhost");
     int serverFD = openAdress(addrname);
     if (serverFD < 0) {
@@ -263,6 +298,7 @@ int main(int argc, char *argv[]) {
     while (1) {
     	connection * con = readNewConnection(serverFD);
     	if(con!=NULL){
+            log(INFO,"new client connected");
     		createChild(con);
     	} else if((clock() - begin) > 500 ){
 //            printf("\e[1;1H\e[2J");
@@ -309,11 +345,12 @@ int connectDB(dbdata_t* DBdata){
 
         char* ar[3]={"sqlite3","-echo",NULL};
         execv("./DB/SQlite/sqlite3",ar);
+        log(ERROR,"ERROR EXECUTING SQLITE!");
         printf("ERROR EXECUTING SQLITE!");
         exit(1);
     } else {
         printf("Connecting Database...\n\n");
-
+        log(INFO,"Connecting Database...");
         DBdata->fdin = open(PATHDBIN,O_WRONLY);
         DBdata->fdout = open(PATHDBOUT,O_RDONLY);
 

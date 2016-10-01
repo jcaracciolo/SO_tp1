@@ -28,6 +28,8 @@ int main(int argc, int * argv[]) {
         exit(1);
     }
 
+    int pid = getpid();
+
     puts(buffer);
 
     connection *con = connectToAddres(buffer);
@@ -38,11 +40,11 @@ int main(int argc, int * argv[]) {
     stock->uuids = NULL;
 
     puts("Price of papa?");
-    int pricePapa = getPriceFromDB(con,"papa");
+    int pricePapa = getPriceFromDB(con,"papa",pid);
     printf("price of papa %d\n", pricePapa);
 
     puts("Stock of papa?");
-    int stockPapa = getStockFromDB(con,"papa");
+    int stockPapa = getStockFromDB(con,"papa",pid);
     printf("first stock %d\n", stockPapa);
 
 
@@ -50,13 +52,13 @@ int main(int argc, int * argv[]) {
     puts("Trying to buy 2");
     printf("before buying i got %d papas\n", stock->last);
     int totalPrice,res;
-    res = sendBuyTransaction(con, "papa\0", 3, 20, stock,&totalPrice);
+    res = sendBuyTransaction(con, "papa\0", 3, 20, stock,&totalPrice,pid);
     printf("after paying %d, i got %d papas\n",totalPrice, stock->last);
 
     //END BUY
 
     puts("Stock of papa?");
-    stockPapa = getStockFromDB(con,"papa\0");
+    stockPapa = getStockFromDB(con,"papa\0",getpid());
     printf("second stock %d\n", stockPapa);
 
     puts("END TRANSACTION");

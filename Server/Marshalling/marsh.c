@@ -88,17 +88,19 @@ int receiveACK(connection * con){
   else return 0;
 }
 
-int getPriceFromDB(connection * con, char * prodName){
+int getPriceFromDB(connection * con, char * prodName,int client){
   sendTransType(con, PRICE);
+  receiveACK(con);
+  sendInt(con,client);
   receiveACK(con);
   sendString(con, prodName);
   return receiveInt(con);
 }
 
-
-
-int getStockFromDB(connection * con, char * prodName){
+int getStockFromDB(connection * con, char * prodName,int client){
   sendTransType(con, STOCK);
+  receiveACK(con);
+  sendInt(con,client);
   receiveACK(con);
   sendString(con, prodName);
   return receiveInt(con);
@@ -107,24 +109,28 @@ int getStockFromDB(connection * con, char * prodName){
 //This sends a buy transaction to the conection. Returns 1 if succesful
 // and 0 if not succesful. This is used exclusively by the client.
 int sendBuyTransaction( connection * con, char * prodName,int amount,
-                        int maxPrice, UUIDStock * stock, int * finalCost){
+                        int maxPrice, UUIDStock * stock, int * finalCost,int client){
 
   sendTransType(con,BUY);
+  receiveACK(con);
+
+  sendInt(con,client);
   receiveACK(con);
 
   //Receive prodname and send ack
   sendString(con,prodName);
   receiveACK(con);
 
-  //Send amount of product to buy
-  sendInt(con,amount);
-  receiveACK(con);
+    //Send amount of product to buy
+    sendInt(con,amount);
+    receiveACK(con);
 
-  sendInt(con,maxPrice);
+    sendInt(con,maxPrice);
 
-  if(receiveTransType(con) == OK){
-    // printf("The trying to send uuids:\n");
-    sendACK(con);
+    if(receiveTransType(con) == OK){
+
+        // printf("The trying to send uuids:\n");
+        sendACK(con);
     UUIDStock *ans=receiveUUIDArray(con,amount,finalCost);
 
     // printf("recieved UUIDS:\n");

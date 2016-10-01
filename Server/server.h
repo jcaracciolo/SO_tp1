@@ -11,5 +11,6 @@ void initializeUUID(unsigned int n);
 int validateUUID(char* arg);
 int getNUUID(UUIDArray* tofill);
 int connectDB(dbdata_t* DBdata);
+void log(int priority,char* message);
 
 #endif
