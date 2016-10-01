@@ -30,11 +30,14 @@ int sendInt(connection * con, int num);
 int receiveInt(connection * con);
 
 //sends the UUID array to the specified connection
-int sendUUIDArray(connection * con, UUIDArray * array, int totalCost);
+int sendUUIDArray(connection * con, UUIDArray * array);
+
+int sendSellTransaction( connection * con, char * prodName,int amount,
+                         int minPrice, UUIDStock * stock, int * finalGain,int client);
 
 //recieves a UUID array from the conection and stores it in array
 //Asumes the array is empty.
-UUIDStock* receiveUUIDArray(connection * con,int n,int* cost);
+UUIDStock* receiveUUIDArray(connection * con,int n);
 
 //sned transType
 int sendTransType(connection * con, transType_t transType);

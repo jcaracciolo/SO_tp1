@@ -21,7 +21,7 @@
 #define PATHDBOUT "/tmp/fifoDBserverOut"
 #define MAX_BUF 300
 #define UUID_CANT 100
-#define SEMNAME "sem10"
+#define SEMNAME "semDB"
 
 dbdata_t* DBdata;
 char* addrname;
@@ -74,7 +74,6 @@ void attStockTransaction(connection * con){
     sendInt(con, price);
 }
 void attBuyTransaction(connection * con){
-
     sendACK(con);
     int client=receiveInt(con);
     sendACK(con);
@@ -104,20 +103,26 @@ void attBuyTransaction(connection * con){
         //TODO make something
     }
 
+
     sem_t* semid=sem_open(SEMNAME,0);
     sem_wait(semid);
+    printf("%d semid\n",semid);
     short buyRealised = 0;
     int price = getPrice(DBdata, prodName);
     int stock = getStock(DBdata, prodName);
+
+
     if (price * amount <= maxPay && stock >= amount && amount<=MAX_UUIDS_PER_ARRAY) {
 
         printf("amount: %i\n", amount);
         printf("old Stock: %i\n", stock);
         updateStock(DBdata, prodName, stock - amount);
         printf("New Stock: %i\n", getStock(DBdata, prodName));
+
         sprintf(buff,"Buy transaction from %d - %s stock: %d price: %d checks out",client,prodName,stock,price);
         log(INFO,buff);
         buyRealised = 1;
+
     } else{
         if(price * amount > maxPay) {
             sprintf(buff, "Buy transaction from %d - Given money($ %d ) no enough, requires %d",client, maxPay,
@@ -138,23 +143,34 @@ void attBuyTransaction(connection * con){
     }
 
 
+
+
     sem_post(semid);
     sem_close(semid);
 
+    printf("%d sem OK\n",semid);
+
+
+
     int ret;
     pthread_join(UUIDthread, &ret);
+
 
     if(ret==0 && buyRealised){
         //tell the client the transaction went through and receive confirmation
         sendTransType(con,OK);
         receiveACK(con);
 
-        sendUUIDArray(con,&tdata,price*amount);
+        sendUUIDArray(con,&tdata);
+        receiveACK(con);
+        sendInt(con,price*amount);
+
         //send total amount payed by client
         // sendInt(con,amount*price);
         // sendInt(con,7);
         // fflush(NULL);
         // sendACK(con);
+        printf("SDADSA");
         sprintf(buff, "Buy transaction from %d - %d of %s purchased correctly at %d",client,amount,prodName,amount*price);
         log(INFO, buff);
     }else{
@@ -163,7 +179,96 @@ void attBuyTransaction(connection * con){
 		receiveACK(con);
 }
 
-int getNUUID(UUIDArray* tofill){
+void attSellTransaction(connection * con){
+
+    sendACK(con);
+    int client=receiveInt(con);
+    sendACK(con);
+
+    char prodName[MAX_PROD_NAME_LENGHT];
+    //Receive prodname and send ack
+    receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
+    sendACK(con);
+
+    //receive amount of product to buy
+    int amount=receiveInt(con);
+    sendACK(con);
+
+    //receive max price the client is willing to pay
+    int minPay=receiveInt(con);
+
+    char buff[MAX_BUF];
+    sprintf(buff,"Attending sell trans for client %d, wanting to sell %d of %s at a min of $ %d ",client,amount,prodName,minPay);
+    log(INFO,buff);
+
+    threadData tdata;
+    tdata.n=amount;
+    tdata.con=con;
+
+    pthread_t UUIDthread;
+
+    int err = pthread_create(&(UUIDthread), NULL, &readNUUID, (void *)&tdata);
+    if (err != 0) {
+        //TODO make something
+    }
+
+    sem_t* semid=sem_open(SEMNAME,0);
+    sem_wait(semid);
+    short sellRealised = 0;
+    int price = getPrice(DBdata, prodName);
+    int stock = getStock(DBdata, prodName);
+    if (price * amount >= minPay && amount<=MAX_UUIDS_PER_ARRAY) {
+
+        printf("amount: %i\n", amount);
+        printf("old Stock: %i\n", stock);
+        updateStock(DBdata, prodName, stock + amount);
+        printf("New Stock: %i\n", getStock(DBdata, prodName));
+        sprintf(buff,"Sell transaction from %d - %s stock: %d price: %d checks out",client,prodName,stock,price);
+        log(INFO,buff);
+        sellRealised = 1;
+    } else{
+        if(price * amount < minPay) {
+            sprintf(buff, "Sell transaction from %d - Cannot reach minimal payment($ %d ), cost is  %d",client, minPay,
+                    price * amount);
+            log(WARNING, buff);
+        }
+
+        if(amount > MAX_UUIDS_PER_ARRAY) {
+            sprintf(buff, "Sell transaction from %d - transaction too big (%d). Max amount per purchase: %d",client, amount,MAX_UUIDS_PER_ARRAY);
+            log(WARNING, buff);
+        }
+
+    }
+    sem_post(semid);
+    sem_close(semid);
+
+    int ret;
+    printf("client %d\n",client);
+    printf("amount %d\n",amount);
+    pthread_join(UUIDthread, &ret);
+    printf("client %d\n",client);
+    printf("amount %d\n",amount);
+    sendACK(con);
+
+    printf("thread returned %d\n",ret);
+
+    if(ret==0 && sellRealised){
+        //tell the client the transaction went through and receive confirmation
+        sendTransType(con,OK);
+        receiveACK(con);
+
+        sendInt(con,price * amount);
+
+        sprintf(buff, "Sell transaction from %d - %d of %s sold correctly at %d",client,amount,prodName,amount*price);
+        log(INFO, buff);
+    }else{
+        sendTransType(con,ERROR);
+    }
+    receiveACK(con);
+}
+
+
+void* getNUUID(UUIDArray* tofill){
     int i;
     for(i=0;i<tofill->size;i++){
         tofill->uuids[i]=getRandomUUID();
@@ -171,11 +276,21 @@ int getNUUID(UUIDArray* tofill){
     return 0;
 }
 
-int validateUUID(char* arg){
+void* readNUUID(threadData* t){
+    sendACK(t->con);
+    UUIDStock* recieved=receiveUUIDArray(t->con,t->n);
+    int i;
 
-    printf("THIS THREAD SAID: %s\n",arg);
-    return 1;
+    for(i=0;i<recieved->last;i++){
+        if(!UUIDcontains(recieved->uuids[i]))
+            return 1;
+    }
+
+   return 0;
+
 }
+
+
 
 void assist(connection* con) {
     while (1) {
@@ -191,12 +306,7 @@ void assist(connection* con) {
                             attStockTransaction(con);
                             break;
                         case SELL:
-                            if (err != 0) {
-                                //TODO make something
-                            }
-                            int ret;
-
-                            printf("thread done %d\n", ret);
+                            attSellTransaction(con);
                             break;
                         case BUY:
                             attBuyTransaction(con);
