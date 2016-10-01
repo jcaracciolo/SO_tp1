@@ -206,7 +206,17 @@ int main(int argc, char *argv[]) {
     srand(0);
 
 
+    int key = ftok("Logs/log", 'A');
+    if ((msqid = msgget(key, 0666)) == -1) {
+        perror("Coudnt connect to the log");
+    }
 
+    msgbuf_t m;
+    m.mtype=2;
+    strcpy(m.message,"AAAA");
+    msgsnd(msqid,&m,sizeof(m),0);
+    puts("SDADSA");
+    printf("%d\n",key);
 
     DBdata=malloc(sizeof(dbdata_t));
     addrname=calloc(MAX_BUF,1);

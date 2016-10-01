@@ -16,7 +16,7 @@ typedef struct{
     char message[300];
 }msgbuf_t;
 
-typedef enum  {INFO=1,WARNING, ERROR} msg_t;
+typedef enum  {INFO=1,WARNING, MERROR} msg_t;
 
 
 

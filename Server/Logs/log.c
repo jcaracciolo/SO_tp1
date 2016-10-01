@@ -25,14 +25,15 @@ int main(){
 
     fprintf(log,"INITIALIZE LOG OF %s\n",buf+strlen(LOG));
 
-    key = ftok("log", 'A');
-    msqid = msgget(key, 0666 | IPC_CREAT);
+    int key = ftok("log", 'A');
+    int msqid = msgget(key, 0666 | IPC_CREAT);
+    printf("%d\n",key);
 
     msgbuf_t msg;
+    int ans=0;
     do{
-        int ans;
         memset(&msg, 0, sizeof(msg));
-        ans=msgrcv(msqid, &msg, sizeof(msgbuf_t), ERROR, 0);
+        ans=msgrcv(msqid, &msg, sizeof(msgbuf_t), MERROR, 0);
 
         if(ans==0){
             ans=msgrcv(msqid, &msg, sizeof(msgbuf_t), WARNING, 0);
@@ -43,7 +44,7 @@ int main(){
         }
 
         switch((int)msg.mtype){
-            case ERROR:
+            case MERROR:
                 fprintf(log,"ERROR: ");
                 printf("ERROR: ");
                 break;
@@ -58,7 +59,7 @@ int main(){
         }
 
         fprintf(log,"%s\n",msg.message);
-        fprintf("%s\n",msg.message);
+        printf("%s\n",msg.message);
 
     }while(ans==0 || strcmp(msg.message,"end of log")!=0);
 
