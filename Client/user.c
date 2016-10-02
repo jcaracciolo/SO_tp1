@@ -120,53 +120,56 @@
  			}
  			maxPrice[j] = '\0';
 
- 			int totalPrice, res;
-   			res = sendBuyTransaction(con, prodName, atoi(quantity), atoi(maxPrice), stock, &totalPrice,pid);
-   			if (res < 0) {
+ 			int totalPrice, ack;
+   			ack = sendBuyTransaction(con, prodName, atoi(quantity), atoi(maxPrice), stock, &totalPrice,pid);
+   			if (ack < 0 || totalPrice <= 0) {
    				puts("Buy operation cancelled, please try again.");
    			} else {
    				printf("You bought %s %s%s for a total cost of %i gold coins.\n", quantity, prodName, atoi(quantity) == 1 ? "" : "s", totalPrice);
+   				money -= totalPrice;
    			}
 
 
- 		 } //else if (len >= 5 && strncmp(entry, "sell ", 5) == 0) {
- 		// 	char prodName[MAX_BUF], quantity[MAX_BUF], maxPrice[MAX_BUF];
- 		// 	i = 5;
- 		// 	int j = 0;
-			// while(entry[i] != ' ') {
- 		// 		if (entry[i] == '\0') {
- 		// 			puts("Error on command arguments");
- 		// 			break;
- 		// 		}
- 		// 		prodName[j++] = entry[i++];
- 		// 	}
- 		// 	prodName[j] = '\0';
- 		// 	i++;
+ 		} else if (len >= 5 && strncmp(entry, "sell ", 5) == 0) {
+ 			char prodName[MAX_BUF], quantity[MAX_BUF], minPrice[MAX_BUF];
+ 			i = 5;
+ 			int j = 0;
+			while(entry[i] != ' ') {
+ 				if (entry[i] == '\0') {
+ 					puts("Error on command arguments");
+ 					break;
+ 				}
+ 				prodName[j++] = entry[i++];
+ 			}
+ 			prodName[j] = '\0';
+ 			i++;
 
- 		// 	j = 0;
- 		// 	while(entry[i] != ' ') {
- 		// 		if (entry[i] == '\0') {
- 		// 			puts("Error on command arguments");
- 		// 			break;
- 		// 		}
- 		// 		quantity[j++] = entry[i++];
- 		// 	}
- 		// 	quantity[j] = '\0';
- 		// 	i++;
+ 			j = 0;
+ 			while(entry[i] != ' ') {
+ 				if (entry[i] == '\0') {
+ 					puts("Error on command arguments");
+ 					break;
+ 				}
+ 				quantity[j++] = entry[i++];
+ 			}
+ 			quantity[j] = '\0';
+ 			i++;
 
- 		// 	j = 0;
- 		// 	while(entry[i] != '\0') {
- 		// 		maxPrice[j++] = entry[i++];
- 		// 	}
- 		// 	maxPrice[j] = '\0';
+ 			j = 0;
+ 			while(entry[i] != '\0') {
+ 				minPrice[j++] = entry[i++];
+ 			}
+ 			minPrice[j] = '\0';
 
- 		// 	int totalPrice, res;
-   // 			res = sendSellTransaction(con, prodName, atoi(quantity), atoi(maxPrice), stock, &totalPrice,pid);
-   // 			if (res < 0) {
-   // 				puts("Buy operation cancelled, please try again.");
-   // 			} else {
-   // 				printf("You bought %s %ss for a total cost of %i\n", quantity, prodName, totalPrice);
-   // 			}
+ 			int profit, res;
+  			int ack = sendSellTransaction( con, prodName, atoi(quantity), atoi(quantity) * atoi(minPrice), stock, &profit, pid);
+   			if (ack < 0 || profit < 0) {
+   				puts("Buy operation cancelled, please try again.");
+   			} else {
+   				printf("You sold %s %s%s and you gained %i gold coins.\n", quantity, prodName, atoi(quantity) == 1 ? "" : "s", profit);
+   				money += profit;
+   			}
+   		}
 	}
 
  }
@@ -176,8 +179,8 @@
  	puts("Commands available:");
  	puts("\tget stock [product name]");
  	puts("\tget price [product name]");
- 	puts("\tbuy [product name] [quantity] [max price]");
- 	puts("\tsell product name] [quantity]");
+ 	puts("\tbuy [product name] [quantity] [max total price]");
+ 	puts("\tsell product name] [quantity] [min total price]");
  	puts("\t--help");
  	puts("\texit");
  }
