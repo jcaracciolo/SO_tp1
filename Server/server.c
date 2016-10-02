@@ -287,7 +287,7 @@ int main(int argc, char *argv[]) {
 
     //Opening server
     puts("Opening server address\n");
-    strcpy(addrname,"10.1.34.241:5000/localhost");
+    strcpy(addrname,"127.0.0.1:5000/localhost");
     int serverFD = openAdress(addrname);
     if (serverFD < 0) {
         printf("Opening server address failed\n");
