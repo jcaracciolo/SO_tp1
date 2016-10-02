@@ -251,8 +251,11 @@ void* readNUUID(threadData* t){
     int i;
 
     for(i=0;i<recieved->last;i++){
-        if(!UUIDcontains(recieved->uuids[i]))
-            return (void*)1;
+        if(!UUIDcontains(recieved->uuids[i])){
+					printf("%ld - %ld\n",recieved->uuids[i].high,recieved->uuids[i].low);
+
+					return (void*)1;
+				}
     }
 
    return (void*)0;
@@ -263,7 +266,7 @@ void* readNUUID(threadData* t){
 
 void assist(connection* con) {
     sem=sem_open(SEMNAME,0);
-    
+
     while (1) {
 
                 pthread_t UUIDthread;
@@ -390,7 +393,7 @@ int main(int argc, char *argv[]) {
 //            drawChart();
                 begin=clock();
                 sem_wait(sem);
-            printf("STOCK %d\n",getStock(DBdata,"papa"));
+            //printf("STOCK %d\n",getStock(DBdata,"papa"));
             sem_post(sem);
 
         }

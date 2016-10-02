@@ -104,6 +104,7 @@ int getStockFromDB(connection * con, char * prodName,int client){
   return receiveInt(con);
 }
 
+
 int getRequestedProduct(connection* con,int* client,char* prodName){
     sendACK(con);
     *client=receiveInt(con);
@@ -134,10 +135,12 @@ int sendSellTransaction( connection * con, char * prodName,int amount,
 
     //Receive prodname and send ack
     sendString(con,prodName);
+    printf(" 1Last ack:\n");
     if(!receiveACK(con)) return -1;;
 
     //Send amount of product to buy
     sendInt(con,amount);
+    printf(" 2Last ack:\n");
     if(!receiveACK(con)) return -1;
 
     sendInt(con,minPrice);
@@ -147,19 +150,25 @@ int sendSellTransaction( connection * con, char * prodName,int amount,
     memccpy(tosell.uuids,(void*)&(stock->uuids[stock->last-amount]),amount,sizeof(UUID));
     tosell.size=amount;
 
+
+    //The return from realloc was ignored. i fixed it
+    printf("Last ack:\n");
     if(!receiveACK(con)) return -1;
 
-    realloc(stock->uuids,(stock->last - amount)*sizeof(UUID));
-    stock->last-=amount;
-    stock->size=stock->last - amount;
     sendUUIDArray(con,&tosell);
 
 
     if((r=receiveTransType(con)) == OK){
+       printf("The trying to send uuids:\n");
+
+      stock->uuids = realloc(stock->uuids,(stock->last - amount)*sizeof(UUID));
+      stock->last-=amount;
+      stock->size=stock->last - amount;
         sendACK(con);
         *finalGain=receiveInt(con);
         return 0;
     } else {
+      printf("Something whrong:\n");
         return r;
         // printf("The transaction didnt go through:\n");
     }
@@ -207,20 +216,13 @@ int sendBuyTransaction( connection * con, char * prodName,int amount,
 
     if((r=receiveTransType(con)) == OK){
 
-        // printf("The trying to send uuids:\n");
-        sendACK(con);
-        UUIDStock *ans=receiveUUIDArray(con,amount);
+      sendACK(con);
+      UUIDStock *ans=receiveUUIDArray(con,amount);
 
-        sendACK(con);
-    *finalCost=receiveInt(con);
+      sendACK(con);
+      *finalCost=receiveInt(con);
 
-    // printf("recieved UUIDS:\n");
-    // printStock(ans);
-
-    // printf("previous local UUIDS:\n");
-    // printStock(stock);
-
-    addUUIDsToStock(stock,ans);
+      addUUIDsToStock(stock,ans);
 
     // printf("%d after local UUIDS:\n",stock->last);
     // printStock(stock);
@@ -231,8 +233,11 @@ int sendBuyTransaction( connection * con, char * prodName,int amount,
     // printf("Total i payed: %d\n",*finalCost  );
 
     // printf("The transaction went through:\n");
+    sendACK(con);
+    //This means the transaction went through
+    return 1;
 
-    return 0;
+
   } else {
         return r;
     // printf("The transaction didnt go through:\n");
@@ -253,7 +258,6 @@ void addUUIDsToStock(UUIDStock * stock, UUIDStock * newUUIDS){
   // printf("last: %d, size: %d\n",newUUIDS->last,newUUIDS->size);
   //
   // // printf("what i see in stock:\n");
-  // // printStock(stock);
   // //
   // // printf("waht i see in new:\n");
   // // printStock(newUUIDS);
@@ -267,6 +271,7 @@ void addUUIDsToStock(UUIDStock * stock, UUIDStock * newUUIDS){
     stock->uuids = realloc( stock->uuids,
                             (newUUIDS->last + stock->last + 1 ) * sizeof(UUID));
   }
+  // printStock(stock);
   int off = stock->last;
   size_t i;
   for (i = 0; i < newUUIDS->last; i++) {
@@ -277,6 +282,7 @@ void addUUIDsToStock(UUIDStock * stock, UUIDStock * newUUIDS){
   stock->size = newUUIDS->last + stock->last + 1;
   stock->last = stock->last + newUUIDS->last ;
 
+  free(newUUIDS->uuids);
   free(newUUIDS);
 }
 

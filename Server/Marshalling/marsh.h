@@ -60,6 +60,9 @@ int getPriceFromDB(connection * con, char * prodName,int client);
 //Receives the price from the bd
 int getStockFromDB(connection * con, char * prodName, int client);
 
+void printStock(UUIDStock * stock);
+
+
 //Tries to buy with the determined price
 int sendBuyTransaction( connection * con, char * prodName, int amount,
                         int maxPrice, UUIDStock * stock, int * finalCost,int client);
