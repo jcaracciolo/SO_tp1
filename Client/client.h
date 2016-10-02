@@ -5,8 +5,8 @@
 
 //If you want the client to trade another good, just increase MAX_PRODUCTS
 //and add the product name to the validProd list.
-#define MAX_PRODUCTS 1
-char validProd[MAX_PRODUCTS][MAX_PROD_NAME_LENGHT+1] = {"papa\0"};
+#define MAX_PRODUCTS 2
+char validProd[MAX_PRODUCTS][MAX_PROD_NAME_LENGHT+1] = {"papa\0", "tomate\0"};
 
 //Positive price trend means the prise is rising
 typedef struct{

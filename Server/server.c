@@ -97,7 +97,6 @@ void attBuyTransaction(connection * con){
 
 
     sem_wait(sem);
-    short buyRealised = 0;
     int price = getPrice(DBdata, prodName);
     int stock = getStock(DBdata, prodName);
 
@@ -111,7 +110,6 @@ void attBuyTransaction(connection * con){
 
         sprintf(buff,"Buy transaction from %d - %s stock: %d out of %d price: %d out of %d checks out",client,prodName,amount,stock,maxPay,price*amount);
         log(INFO,buff);
-        buyRealised = 1;
 
     } else{
         sem_post(sem);
@@ -126,7 +124,7 @@ void attBuyTransaction(connection * con){
         if(stock < amount) {
             sprintf(buff, "Buy transaction from %d - Given stock ( %d ) not enough, required %d",client, stock,amount);
             log(WARNING, buff);
-            sendInt(con,STOCK);
+            sendInt(con,NOSTOCK);
             return STOCK;
         }
 
@@ -145,20 +143,13 @@ void attBuyTransaction(connection * con){
     pthread_join(UUIDthread, &ret);
 
 
-    if(ret==0 && buyRealised) {
-        //tell the client the transaction went through and receive confirmation
-        completePurchase(con,&tdata,price*amount);
+    //tell the client the transaction went through and receive confirmation
+    if(completePurchase(con,&tdata,price*amount)==NOCONECTION)
+        return NOCONECTION;
 
-            //send total amount payed by client
-        // sendInt(con,amount*price);
-        // sendInt(con,7);
-        // fflush(NULL);
-        // sendACK(con);
-        sprintf(buff, "Buy transaction from %d - %d of %s purchased correctly at %d",client,amount,prodName,amount*price);
-        log(INFO, buff);
-    }else{
-        sendTransType(con,ERROR);
-    }
+    sprintf(buff, "Buy transaction from %d - %d of %s purchased correctly at %d",client,amount,prodName,amount*price);
+    log(INFO, buff);
+
 }
 void attSellTransaction(connection * con){
 
@@ -183,20 +174,35 @@ void attSellTransaction(connection * con){
     }
 
     sem_wait(sem);
-    short sellRealised = 0;
     int price = getPrice(DBdata, prodName);
-
     int stock = getStock(DBdata, prodName);
-    if (price * amount >= minPay && amount<=MAX_UUIDS_PER_ARRAY) {
+
+    void* ret;
+    pthread_join(UUIDthread, &ret);
+
+    if (price * amount >= minPay && amount<=MAX_UUIDS_PER_ARRAY && ret==0) {
 
         printf("amount: %i\n", amount);
         printf("old Stock: %i\n", stock);
+
         updateStock(DBdata, prodName, stock + amount);
+        sem_post(sem);
+
         printf("New Stock: %i\n", getStock(DBdata, prodName));
+
         sprintf(buff,"Sell transaction from %d - %s stock: %d out of %d price: %d out of %d checks out",client,prodName,amount,stock,minPay,price);
         log(INFO,buff);
-        sellRealised = 1;
-    } else{
+
+
+        sendTransType(con,OK);
+        receiveACK(con);
+        sendInt(con,price * amount);
+
+        sprintf(buff, "Sell transaction from %d - %d of %s sold correctly at %d",client,amount,prodName,amount*price);
+        log(INFO, buff);
+
+        return OK;
+    }else{
         sem_post(sem);
         if(price * amount < minPay) {
             sendInt(con,LESSMONEY);
@@ -213,26 +219,13 @@ void attSellTransaction(connection * con){
             return MAXUUIDS;
         }
 
-    }
-    sem_post(sem);
+        if(ret!=0){
+            sendInt(con,INVALIDUUID);
+            sprintf(buff, "Sell transaction from %d - Invalid UUIDS",client);
+            log(WARNING, buff);
+            return INVALIDUUID;
+        }
 
-    void* ret;
-    pthread_join(UUIDthread, &ret);
-
-
-    if(ret==0){
-        //tell the client the transaction went through and receive confirmation
-        sendTransType(con,OK);
-        receiveACK(con);
-        sendInt(con,price * amount);
-
-        sprintf(buff, "Sell transaction from %d - %d of %s sold correctly at %d",client,amount,prodName,amount*price);
-        log(INFO, buff);
-    }else{
-        sendInt(con,INVALIDUUID);
-        sprintf(buff, "Sell transaction from %d - Invalid UUIDS",client);
-        log(WARNING, buff);
-        return INVALIDUUID;
     }
 }
 
@@ -341,7 +334,7 @@ int main(int argc, char *argv[]) {
         char* ar[3]={"log","DO_NOT_DELETE",NULL};
         execv("log",ar);
     }else if(f<0){
-        perror("ERROR CONNECTING LOG");
+        perror("ERROR EXECUTING LOG");
         exit(0);
     }
 
@@ -356,6 +349,7 @@ int main(int argc, char *argv[]) {
     puts("Log connection established\n");
 
 
+
     connectDB(DBdata);
 
     initializeUUID(UUID_CANT);
@@ -366,16 +360,19 @@ int main(int argc, char *argv[]) {
     sem=sem_open(SEMNAME,O_CREAT,0600,1);
     if(sem==SEM_FAILED){
         perror("Error initializing synchronization");
+        log(MERROR,"Error initializing synchronization");
         exit(1);
     }
 
     //Opening server
     puts("Opening server address\n");
     strcpy(addrname,"127.0.0.1:5000/localhost");
+    log(INFO,"Opening Server addres");
     int serverFD = openAdress(addrname);
     if (serverFD < 0) {
         printf("Opening server address failed\n");
-		exit(1);
+        log(MERROR,"Opening server address failed");
+        exit(1);
 	}
 
     clock_t begin=clock();
@@ -391,10 +388,10 @@ int main(int argc, char *argv[]) {
     	} else if((clock() - begin) > 500 ){
 //            printf("\e[1;1H\e[2J");
 //            drawChart();
-                begin=clock();
-                sem_wait(sem);
-            //printf("STOCK %d\n",getStock(DBdata,"papa"));
-            sem_post(sem);
+//            begin=clock();
+//            sem_wait(sem);
+//            printf("STOCK %d\n",getStock(DBdata,"papa"));
+//            sem_post(sem);
 
         }
     }
@@ -417,7 +414,9 @@ void drawChart(){
 
 void initializeDB(dbdata_t * DBdata) {
     createTable(DBdata);
+    insertIntoTable(DBdata, "papa", 4, 3);
     insertIntoTable(DBdata, "papa", 8000000, 3);
+    insertIntoTable(DBdata, "tomate", 8000000, 6);
 }
 
 int connectDB(dbdata_t* DBdata){
@@ -436,7 +435,7 @@ int connectDB(dbdata_t* DBdata){
 
         char* ar[3]={"sqlite3","-echo",NULL};
         execv("./DB/SQlite/sqlite3",ar);
-        log(ERROR,"ERROR EXECUTING SQLITE!");
+        log(MERROR,"ERROR EXECUTING SQLITE!");
         printf("ERROR EXECUTING SQLITE!");
         exit(1);
     } else {
@@ -457,10 +456,12 @@ int connectDB(dbdata_t* DBdata){
 void initializeUUID(unsigned int n){
     int i;
     printf("Initializing UUID database...\n\n");
+    log(INFO,"Initializing UUID database...");
     for(i=0;i<n;i++){
         printf("\rIn progress [%.*s%*s] %.2f %%",(i+1)*30/n,"||||||||||||||||||||||||||||||||||||||||",30-(i+1)*30/n,"", (i*100.0)/n);
         fflush(stdout);
         UUIDadd(newUUID((uint64_t) random(),(uint64_t) random()));
     }
+    log(INFO,"UUID insertion succesful");
     printf("\nUUID insertion succesful\n");
 }

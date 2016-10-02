@@ -70,7 +70,7 @@ int updateWeights(transType_t action, int cost,int profit, int * priceWeight,
 
   (*sellWeight) = lround( product->priceTrend   * (-2.0) - product->opsSincePrice / 2.0
                         +  product->investedInStock / (2.0 * product->newPrice)
-                        - cash / ((3.0 * product->newPrice)));
+                        - cash / ((1.0 * product->newPrice)));
   if(*priceWeight <= 0) (*priceWeight = 1);
   if(*stockWeight <= 0) (*stockWeight = 1);
   if(*buyWeight <= 0) (*buyWeight = 1);
@@ -81,7 +81,7 @@ int updateWeights(transType_t action, int cost,int profit, int * priceWeight,
 
 int think(connection * con, int pid, int cash){
   int ticksSinceLastOp = 0, opsInTick = 0, conservative;
-  int priceWeight =10, stockWeight = 10, buyWeight = 10, sellWeight = 10;
+  int priceWeight =1, stockWeight = 1, buyWeight = 1, sellWeight = 1;
   int cost=-1,profit=-1;
   productInfo_t * selectedProduct;
   productInfo_t products[MAX_PRODUCTS];
@@ -303,13 +303,14 @@ int decideWhatToBuy(connection * con, productInfo_t * product, int cash,
   int ack = sendBuyTransaction( con, product->prodName, amount,
                                 amount*product->newPrice,
                                 product->stock,&finalCost, pid);
-  if(ack == 1 && finalCost >= 0){
+  if(ack == 0 && finalCost >= 0){
     printf("succesfuly bought %d %ss for %d\n",amount,product->prodName,finalCost);
     product->productProfit -= finalCost;
     product->investedInStock += finalCost;
     return finalCost;
   }
   printf("Couldnt buy %d %ss\n",amount,product->prodName);
+    printError(ack);
   return 0;
 }
 
@@ -344,4 +345,22 @@ int decideWhatToSell(connection * con, productInfo_t * product,
   }
   printf("Couldnt sell %d %s %d ack: %d\n",amount,product->prodName,profit,ack);
   return 0;
+
+}
+char* conerrormsg[]={
+        "Conection lost",
+        "Insuficient amount of products",
+        "Insuficient stock",
+        "Maximun amount of UUIDs per transaction exceded",
+        "Money provided not enough to concrete purchase",
+        "Transaction revenue not enough to reach minimal payment",
+        "Invalid UUIDs",
+        "No such element available"};
+
+void printError(conerrors_t error){
+    if(error > NOSUCHELEMENT){
+        puts("Not know error");
+    }else{
+        puts(conerrormsg[error-NOCONECTION]);
+    }
 }
