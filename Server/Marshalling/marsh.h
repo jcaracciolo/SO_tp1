@@ -1,6 +1,8 @@
 #ifndef MARSH_H
 #define MARSH_H
 #include "../DB/UUID_DataBase/data_types.h"
+#include <limits.h>
+
 
 //Amount of tries it will make before timing out
 #define TIMEOUT_TRIES 60
@@ -13,7 +15,7 @@ typedef struct adress_t address;
 
 typedef struct connection_t connection;
 
-typedef enum  {NOSTOCK=INITIALERROR,MAXUUIDS, MOREMONEY, LESSMONEY, INVALIDUUID} conerrors_t;
+typedef enum  {NOCONECTION=INT_MIN,INSUFPRODS,NOSTOCK,MAXUUIDS, MOREMONEY, LESSMONEY, INVALIDUUID,NOSUCHELEMENT,ACKNOWLEDGE,OK} conerrors_t;
 
 
 //establishes a connection to the address
@@ -72,7 +74,7 @@ int getBuySellInfo(connection* con,int* client, char* prodName, int* amount,int*
 
 int getRequestedProduct(connection* con,int* client,char* prodName);
 
-void completePurchase(connection* con,UUIDArray* data,int payed);
+int completePurchase(connection* con,UUIDArray* data,int payed);
 
 
 #endif

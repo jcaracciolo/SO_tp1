@@ -101,10 +101,10 @@ int isNumber(char * str);
  				continue;
  			}
 
- 			int totalPrice, ack;
+ 			int totalPrice=0, ack;
    			ack = sendBuyTransaction(con, prodName, atoi(quantity), atoi(maxPrice), stock, &totalPrice,pid);
-   			if (ack < 0 || totalPrice <= 0) {
-   				puts("Buy operation cancelled, please try again.");
+   			if (ack < 0) {
+   				printError(ack);
    			} else {
    				printf("You bought %s %s%s for a total cost of %i gold coins.\n", quantity, prodName, atoi(quantity) == 1 ? "" : "s", totalPrice);
    				money -= totalPrice;
@@ -122,7 +122,7 @@ int isNumber(char * str);
  			int profit, res;
   			int ack = sendSellTransaction( con, prodName, atoi(quantity), atoi(quantity) * atoi(minPrice), stock, &profit, pid);
    			if (ack < 0 || profit < 0) {
-   				puts("Buy operation cancelled, please try again.");
+				printError(ack);
    			} else {
    				printf("You sold %s %s%s and you gained %i gold coins.\n", quantity, prodName, atoi(quantity) == 1 ? "" : "s", profit);
    				money += profit;
@@ -131,6 +131,24 @@ int isNumber(char * str);
 	}
 
  }
+
+char* conerrormsg[]={
+		"Conection lost",
+		"Insuficient amount of products",
+		"Insuficient stock",
+		"Maximun amount of UUIDs per transaction exceded",
+		"Money provided not enough to concrete purchase",
+		"Transaction revenue not enough to reach minimal payment",
+		"Invalid UUIDs",
+		"No such element available"};
+
+void printError(conerrors_t error){
+	if(error > NOSUCHELEMENT){
+		puts("Not know error");
+	}else{
+		puts(conerrormsg[error-NOCONECTION]);
+	}
+}
 
 int isNumber(char * str) {
 	int i = 0;

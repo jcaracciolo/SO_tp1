@@ -85,25 +85,25 @@ int sendACK(connection * con){
 }
 
 int receiveACK(connection * con){
-  if(receiveTransType(con) != ACKNOWLEDGE)
+  if(receiveInt(con) != ACKNOWLEDGE)
     return 0;
   else return 1;
 }
 
 int getPriceFromDB(connection * con, char * prodName,int client){
   sendTransType(con, PRICE);
-    if(!receiveACK(con)) return -1;
+    if(!receiveACK(con)) return NOCONECTION;
   sendInt(con,client);
-    if(!receiveACK(con)) return -1;
+    if(!receiveACK(con)) return NOCONECTION;
   sendString(con, prodName);
   return receiveInt(con);
 }
 
 int getStockFromDB(connection * con, char * prodName,int client){
   sendTransType(con, STOCK);
-    if(!receiveACK(con)) return -1;
+    if(!receiveACK(con)) return NOCONECTION;
   sendInt(con,client);
-    if(!receiveACK(con)) return -1;
+    if(!receiveACK(con)) return NOCONECTION;
   sendString(con, prodName);
   return receiveInt(con);
 }
@@ -127,39 +127,36 @@ int sendSellTransaction( connection * con, char * prodName,int amount,
     int r;
 
     if(stock->last<amount){
-        printf("not enough to sell");
-        return -1;
+        return INSUFPRODS;
     }
 
     sendTransType(con,SELL);
-    if(!receiveACK(con)) return -1;
+    if(!receiveACK(con)) return NOCONECTION;
 
     sendInt(con,client);
-    if(!receiveACK(con)) return -1;
+    if(!receiveACK(con)) return NOCONECTION;
 
     //Receive prodname and send ack
     sendString(con,prodName);
-    if(!receiveACK(con)) return -1;;
+    if(!receiveACK(con)) return NOCONECTION;
 
     //Send amount of product to buy
     sendInt(con,amount);
-    if(!receiveACK(con)) return -1;
+    if(!receiveACK(con)) return NOCONECTION;
 
     sendInt(con,minPrice);
 
 
     UUIDArray tosell;
-    int i,off;
-    for (i = 0; i < amount; i++) {
-        off = stock->last - amount + i;
-        tosell.uuids[i].high = stock->uuids[off].high;
-        tosell.uuids[i].low = stock->uuids[off].low;
+    int i,off =  stock->last - amount;
+    for (i =0; i < amount; i++) {
+        tosell.uuids[i].high = stock->uuids[off+i].high;
+        tosell.uuids[i].low = stock->uuids[off+i].low;
     }
-
     // memccpy(tosell.uuids,(void*)&(stock->uuids[stock->last-amount]),amount,sizeof(UUID));
     tosell.size=amount;
 
-    if(!receiveACK(con)) return -1;
+    if(!receiveACK(con)) return NOCONECTION;
 
     sendUUIDArray(con,&tosell);
 
@@ -203,18 +200,18 @@ int sendBuyTransaction( connection * con, char * prodName,int amount,
 
     int r;
   sendTransType(con,BUY);
-    if(!receiveACK(con)) return -1;
+    if(!receiveACK(con)) return NOCONECTION;
 
   sendInt(con,client);
-    if(!receiveACK(con)) return -1;
+    if(!receiveACK(con)) return NOCONECTION;
 
   //Receive prodname and send ack
   sendString(con,prodName);
-    if(!receiveACK(con)) return -1;
+    if(!receiveACK(con)) return NOCONECTION;
 
     //Send amount of product to buy
     sendInt(con,amount);
-    if(!receiveACK(con)) return -1;
+    if(!receiveACK(con)) return NOCONECTION;
 
     sendInt(con,maxPrice);
 
@@ -239,7 +236,7 @@ int sendBuyTransaction( connection * con, char * prodName,int amount,
     // printf("The transaction went through:\n");
     sendACK(con);
     //This means the transaction went through
-    return 1;
+    return 0;
 
 
   } else {
@@ -296,11 +293,11 @@ void addUUIDsToStock(UUIDStock * stock, UUIDStock * newUUIDS){
   free(newUUIDS);
 }
 
-void completePurchase(connection* con,UUIDArray* data,int payed){
+int completePurchase(connection* con,UUIDArray* data,int payed){
     sendTransType(con,OK);
-    if(!receiveACK(con)) return -1;
+    if(!receiveACK(con)) return NOCONECTION;
     sendUUIDArray(con,data);
-    if(!receiveACK(con)) return -1;
+    if(!receiveACK(con)) return NOCONECTION;
     sendInt(con,payed);
 
 }

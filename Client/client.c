@@ -300,10 +300,29 @@ int decideWhatToBuy(connection * con, productInfo_t * product, int cash,
   int ack = sendBuyTransaction( con, product->prodName, amount,
                                 amount*product->newPrice,
                                 product->stock,&finalCost, pid);
-  if(ack == 1 && finalCost >= 0){
+  if(ack == 0 && finalCost >= 0){
     printf("succesfuly bought %d %ss for %d\n",amount,product->prodName,finalCost);
     return finalCost;
   }
   printf("Couldnt buy %d %ss\n",amount,product->prodName);
+    printError(ack);
   return 0;
+}
+
+char* conerrormsg[]={
+        "Conection lost",
+        "Insuficient amount of products",
+        "Insuficient stock",
+        "Maximun amount of UUIDs per transaction exceded",
+        "Money provided not enough to concrete purchase",
+        "Transaction revenue not enough to reach minimal payment",
+        "Invalid UUIDs",
+        "No such element available"};
+
+void printError(conerrors_t error){
+    if(error > NOSUCHELEMENT){
+        puts("Not know error");
+    }else{
+        puts(conerrormsg[error-NOCONECTION]);
+    }
 }
