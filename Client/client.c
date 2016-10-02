@@ -3,7 +3,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <string.h>
 #include <strings.h>
 #include <stdlib.h>
 #include "client.h"
@@ -12,7 +11,7 @@
 #include "../Server/DB/UUID_DataBase/data_types.h"
 
 #define END_OF_CONNECTION "KILLMEPLZ"
-#define TIME_SCALE 2
+#define TIME_SCALE 3
 #define OPS_PER_TICK 1
 #define MAX_BUF 300
 #define CONSERV_RELATION 3
@@ -72,13 +71,14 @@ int decideWhatToSell(connection * con, productInfo_t * product,
 
 int think(connection * con, int pid, int cash){
   int ticksSinceLastOp = 0, opsInTick = 0, conservative;
-  int priceWeight = 3, stockWeight = 1, buyWeight = 10, sellWeight = 10;
+  int priceWeight =10, stockWeight = 10, buyWeight = 10, sellWeight = 10;
   productInfo_t * selectedProduct;
   productInfo_t products[MAX_PRODUCTS];
   transType_t action ;
   initProducts(products);
   conservative = rand() % 3;
   printf("I am about %d conservative\n", conservative);
+
 
   while(cash > 0 || totalStock(products) > 0){
     if(opsInTick >= OPS_PER_TICK) {
@@ -96,6 +96,12 @@ int think(connection * con, int pid, int cash){
     printf("I got %d cash, PW:%d-SW:%d-BW:%d-SELLW:%d\n",
     cash, priceWeight, stockWeight, buyWeight, sellWeight);
     action = decideAction(priceWeight,stockWeight,buyWeight,sellWeight);
+    // int a = getchar();
+    // while(getchar() != '\n');
+    // if(a == '0') action = PRICE;
+    // if(a == '1') action = STOCK;
+    // if(a == '2') action = BUY;
+    // if(a == '3') action = SELL;
     switch (action) {
       case PRICE:
         printf("Consulting price\n");
@@ -125,7 +131,7 @@ int think(connection * con, int pid, int cash){
         if(profit != 0) {
           priceWeight++;stockWeight++;
           buyWeight++;
-          sellWeight-=3;
+          sellWeight++;
         }
         cash += profit; //If you are honest, dont comment this line
         break;

@@ -8,6 +8,7 @@
 
 void printStock(UUIDStock * stock);
 void addUUIDsToStock(UUIDStock * stock, UUIDStock * newUUIDS);
+void printArray(UUIDArray * stock);
 
 // connection * connect(char * addr){
 //   return connectToAddres(addr);
@@ -52,7 +53,6 @@ int receiveInt(connection * con){
 int sendUUIDArray(connection * con, UUIDArray * array){
   sendBytes(con,(char*)array->uuids, sizeof(UUID)*array->size);
   return 0;
-
 }
 
 UUIDStock* receiveUUIDArray(connection * con, int n){
@@ -63,6 +63,10 @@ UUIDStock* receiveUUIDArray(connection * con, int n){
     int read=receiveBytes(con,(char*)ans->uuids,sizeof(UUID)*n);
     ans->size=n;
     ans->last=read/sizeof(UUID);
+    int i;
+
+    printf("I am receing this UUIDS\n");
+    printStock(ans);
 
 
     return ans;
@@ -135,31 +139,31 @@ int sendSellTransaction( connection * con, char * prodName,int amount,
 
     //Receive prodname and send ack
     sendString(con,prodName);
-    printf(" 1Last ack:\n");
     if(!receiveACK(con)) return -1;;
 
     //Send amount of product to buy
     sendInt(con,amount);
-    printf(" 2Last ack:\n");
     if(!receiveACK(con)) return -1;
 
     sendInt(con,minPrice);
 
 
     UUIDArray tosell;
-    memccpy(tosell.uuids,(void*)&(stock->uuids[stock->last-amount]),amount,sizeof(UUID));
+    int i,off;
+    for (i = 0; i < amount; i++) {
+        off = stock->last - amount + i;
+        tosell.uuids[i].high = stock->uuids[off].high;
+        tosell.uuids[i].low = stock->uuids[off].low;
+    }
+
+    // memccpy(tosell.uuids,(void*)&(stock->uuids[stock->last-amount]),amount,sizeof(UUID));
     tosell.size=amount;
 
-
-    //The return from realloc was ignored. i fixed it
-    printf("Last ack:\n");
     if(!receiveACK(con)) return -1;
 
     sendUUIDArray(con,&tosell);
 
-
     if((r=receiveTransType(con)) == OK){
-       printf("The trying to send uuids:\n");
 
       stock->uuids = realloc(stock->uuids,(stock->last - amount)*sizeof(UUID));
       stock->last-=amount;
@@ -248,6 +252,12 @@ int sendBuyTransaction( connection * con, char * prodName,int amount,
 void printStock(UUIDStock * stock){
   int i;
   for(i=0;i<stock->last;i++){
+    printf("%ld - %ld\n",stock->uuids[i].high,stock->uuids[i].low);
+  }
+}
+void printArray(UUIDArray * stock){
+  int i;
+  for(i=0;i<stock->size;i++){
     printf("%ld - %ld\n",stock->uuids[i].high,stock->uuids[i].low);
   }
 }
