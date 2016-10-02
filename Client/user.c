@@ -4,12 +4,15 @@
 #include "../Server/Coms/coms.h"
 #include "../Server/Marshalling/marsh.h"
 #include "../Server/DB/UUID_DataBase/data_types.h"
+#include "client.h"
 
 #define MAX_BUF 255
+
 
 int readArgs3(char * args, char * arg1, char * arg2, char * arg3);
 voiddisplayHelp();
 int isNumber(char * str);
+productInfo_t * getProduct(productInfo_t * products, char * prodName);
 
  int main() {
  	int c, i = 0;
@@ -39,6 +42,9 @@ int isNumber(char * str);
 	}
 	puts("Connected succesfully");
 
+
+	productInfo_t products[MAX_PRODUCTS];
+	initProducts(products);
 
 
     // Creating UUIDStock
@@ -119,8 +125,14 @@ int isNumber(char * str);
  				continue;
  			}
 
+ 			productInfo_t * prod = getProduct(products, prodName);
+ 			if (prod == NULL) {
+ 				puts("Product does not exists.");
+ 				continue;
+ 			}
+
  			int profit, res;
-  			int ack = sendSellTransaction( con, prodName, atoi(quantity), atoi(quantity) * atoi(minPrice), stock, &profit, pid);
+  			int ack = sendSellTransaction( con, prod->prodName, atoi(quantity), atoi(quantity) * atoi(minPrice), prod->stock, &profit, pid);
    			if (ack < 0 || profit < 0) {
 				printError(ack);
    			} else {
@@ -148,6 +160,31 @@ void printError(conerrors_t error){
 	}else{
 		puts(conerrormsg[error-NOCONECTION]);
 	}
+}
+
+productInfo_t * getProduct(productInfo_t * products, char * prodName) {
+	int i;
+	for (i= 0; i < MAX_PRODUCTS; i++) {
+		if (strcmp(products[i].prodName, prodName) == 0) {
+			return &(products[i]);
+		}
+	}
+	return NULL;
+}
+
+int initProducts(productInfo_t * products){
+  int i ;
+  for (i= 0; i < MAX_PRODUCTS; i++) {
+    strcpy(products[i].prodName,validProd[i]);
+    products[i].newPrice = -1;
+    products[i].prevPrice = -1;
+    products[i].priceTrend = 0;
+    products[i].remoteStock = -1;
+    products[i].stock = malloc(sizeof(UUIDStock));
+    products[i].stock->size = 0;
+    products[i].stock->last = 0;
+    products[i].stock->uuids = NULL;
+  }
 }
 
 int isNumber(char * str) {

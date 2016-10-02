@@ -2,9 +2,9 @@
 #define CLIENT_H
 
 #include "../Server/DB/UUID_DataBase/data_types.h"
-#define MAX_PRODUCTS 1
+#define MAX_PRODUCTS 2
 
-char validProd[MAX_PRODUCTS][MAX_PROD_NAME_LENGHT+1] = {"papa\0"};
+char validProd[MAX_PRODUCTS][MAX_PROD_NAME_LENGHT+1] = {"papa\0", "tomate\0"};
 
 typedef struct{
     char prodName[MAX_PROD_NAME_LENGHT+1];
