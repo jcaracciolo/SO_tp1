@@ -418,6 +418,7 @@ void drawChart(){
 void initializeDB(dbdata_t * DBdata) {
     createTable(DBdata);
     insertIntoTable(DBdata, "papa", 8000000, 3);
+    insertIntoTable(DBdata, "tomate", 8000000, 6);
 }
 
 int connectDB(dbdata_t* DBdata){
