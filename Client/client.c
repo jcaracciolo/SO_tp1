@@ -1,9 +1,11 @@
+#include <math.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <strings.h>
+#include <string.h>
 #include <stdlib.h>
 #include "client.h"
 #include "../Server/Coms/coms.h"
@@ -24,7 +26,8 @@ transType_t decideAction(int priceWeight,int stockWeight, int buyWeight, int sel
 int initProducts(productInfo_t * products);
 int decideWhatToBuy(connection * con, productInfo_t * product, int cash,
                     int conservativeness,int pid);
-
+int decideWhatToSell( connection * con, productInfo_t * product,
+                      int conservativeness,int pid);
 int sellImportance(int price, int localStock, int stock){
   return price ;
 }
@@ -37,41 +40,49 @@ char *conerrors[5]={   "Insufficient stock for that product",
                        "UUIDS invalid"};
 
 
-//Sends the sell transaction and return the profit of the transaction.
-//conservativeness = 0 means the client can sell all its product
-int decideWhatToSell(connection * con, productInfo_t * product,
-                    int conservativeness,int pid){
-  if(product->newPrice == -1 ) {
-    printf("Not enough info to sell\n");
-    return 0;
+
+
+int updateWeights(transType_t action, int cost,int profit, int * priceWeight,
+                  int * stockWeight, int * buyWeight, int * sellWeight,
+                  productInfo_t * product, int cash){
+
+  switch (action) {
+    case PRICE:
+      product->opsSincePrice = 0;
+      break;
+    case STOCK:
+      product->opsSinceStock = 0;
+      break;
+    case BUY:
+
+      break;
+    case SELL:
+
+      break;
+    default:
+      break;
   }
-  int maxSellAmount = (product->stock->last - conservativeness/CONSERV_RELATION);
-  if(maxSellAmount <= 0){
-    printf("I dont have enogh stock or i am too conservative to sell\n");
-    return 0;
-  }
-  int amount = rand() % maxSellAmount;
-  if(amount <= 0){
-    printf("I am trying to sell less than 1\n" );
-    return 0;
-  }
-  int profit = -1;
-  int ack = sendSellTransaction( con, product->prodName, amount,
-                                amount*product->newPrice,
-                                product->stock,&profit, pid);
-  if(ack == 0 && profit >= 0){
-    printf("succesfuly sold %d %ss for %d\n",amount,product->prodName,profit);
-    return profit;
-  }
-  printf("Couldnt sell %d %s %d ack: %d\n",amount,product->prodName,profit,ack);
-  return 0;
+  (*priceWeight) = product->opsSincePrice + abs(product->priceTrend) ;
+  (*stockWeight) = lround(product->opsSinceStock / 2.0) ;
+  (*buyWeight) = lround( product->priceTrend * 2.0 - product->opsSincePrice / 2.0
+                        -  product->investedInStock / (2.0 * product->newPrice)
+                        + cash / ((3.0 * product->newPrice))) ;
+
+  (*sellWeight) = lround( product->priceTrend   * (-2.0) - product->opsSincePrice / 2.0
+                        +  product->investedInStock / (2.0 * product->newPrice)
+                        - cash / ((3.0 * product->newPrice)));
+  if(*priceWeight <= 0) (*priceWeight = 1);
+  if(*stockWeight <= 0) (*stockWeight = 1);
+  if(*buyWeight <= 0) (*buyWeight = 1);
+  if(*sellWeight <= 0) (*sellWeight = 1);
+
+
 }
-
-
 
 int think(connection * con, int pid, int cash){
   int ticksSinceLastOp = 0, opsInTick = 0, conservative;
   int priceWeight =10, stockWeight = 10, buyWeight = 10, sellWeight = 10;
+  int cost=-1,profit=-1;
   productInfo_t * selectedProduct;
   productInfo_t products[MAX_PRODUCTS];
   transType_t action ;
@@ -107,41 +118,28 @@ int think(connection * con, int pid, int cash){
         printf("Consulting price\n");
         updatePrice(selectedProduct,
                     getPriceFromDB(con,selectedProduct->prodName,pid));
-        priceWeight--;
-        action = BUY;
         break;
       case STOCK:
         printf("Consulting stock\n");
         selectedProduct->remoteStock = getStockFromDB(con,selectedProduct->prodName,pid);
-        stockWeight--;
         break;
       case BUY:
         printf("Trying to buy\n");
-        int cost = decideWhatToBuy(con, selectedProduct,cash,conservative,pid);
-        if(cost != 0) {
-          priceWeight++;stockWeight++;
-          buyWeight--;
-          sellWeight++;
-        }
+        cost = decideWhatToBuy(con, selectedProduct,cash,conservative,pid);
         cash -= cost; //If you are honest, dont comment this line
         break;
       case SELL:
         printf("Trying to sell\n");
-        int profit = decideWhatToSell(con, selectedProduct,conservative,pid);
-        if(profit != 0) {
-          priceWeight++;stockWeight++;
-          buyWeight++;
-          sellWeight++;
-        }
+        profit = decideWhatToSell(con, selectedProduct,conservative,pid);
         cash += profit; //If you are honest, dont comment this line
         break;
       default:
         printf("Trying to do something illegal :O\n");
-        buyWeight++;sellWeight++;
-        priceWeight++;stockWeight++;
         break;
 
     }
+    updateWeights(  action,cost,profit,&priceWeight,&stockWeight,&buyWeight,
+                    &sellWeight, selectedProduct,cash);
     opsInTick++;
   }
   printf("i ran out of money and stock :(\n");
@@ -274,6 +272,11 @@ int initProducts(productInfo_t * products){
     products[i].prevPrice = -1;
     products[i].priceTrend = 0;
     products[i].remoteStock = -1;
+    products[i].opsSincePrice = 0;
+    products[i].opsSinceStock = 0;
+    products[i].remoteStock = -1;
+    products[i].investedInStock= 0;
+    products[i].productProfit= 0;
     products[i].stock = malloc(sizeof(UUIDStock));
     products[i].stock->size = 0;
     products[i].stock->last = 0;
@@ -302,8 +305,43 @@ int decideWhatToBuy(connection * con, productInfo_t * product, int cash,
                                 product->stock,&finalCost, pid);
   if(ack == 1 && finalCost >= 0){
     printf("succesfuly bought %d %ss for %d\n",amount,product->prodName,finalCost);
+    product->productProfit -= finalCost;
+    product->investedInStock += finalCost;
     return finalCost;
   }
   printf("Couldnt buy %d %ss\n",amount,product->prodName);
+  return 0;
+}
+
+//Sends the sell transaction and return the profit of the transaction.
+//conservativeness = 0 means the client can sell all its product
+int decideWhatToSell(connection * con, productInfo_t * product,
+                    int conservativeness,int pid){
+  if(product->newPrice == -1 ) {
+    printf("Not enough info to sell\n");
+    return 0;
+  }
+  int maxSellAmount = (product->stock->last - conservativeness/CONSERV_RELATION);
+  if(maxSellAmount <= 0){
+    printf("I dont have enogh stock or i am too conservative to sell\n");
+    return 0;
+  }
+  int amount = rand() % maxSellAmount;
+  if(amount <= 0){
+    printf("I am trying to sell less than 1\n" );
+    return 0;
+  }
+  int profit = -1;
+  int ack = sendSellTransaction( con, product->prodName, amount,
+                                amount*product->newPrice,
+                                product->stock,&profit, pid);
+  if(ack == 0 && profit >= 0){
+    printf("succesfuly sold %d %ss for %d\n",amount,product->prodName,profit);
+    product->productProfit += profit;
+    //try to see how much money invested you have left, it is not 100% accurate
+    product->investedInStock = lround((1.0*amount/(product->stock->last + amount))*product->investedInStock);
+    return profit;
+  }
+  printf("Couldnt sell %d %s %d ack: %d\n",amount,product->prodName,profit,ack);
   return 0;
 }

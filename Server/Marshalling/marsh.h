@@ -6,7 +6,7 @@
 #define TIMEOUT_TRIES 60
 //Amount of time in seconds it will wait until it tries again to connect
 #define CONN_TRY_INT
-
+#define BLOCK_SIZE 10
 #define INITIALERROR 100
 
 typedef struct adress_t address;

@@ -6,6 +6,7 @@
 #include "../Coms/coms.h"
 
 
+
 void printStock(UUIDStock * stock);
 void addUUIDsToStock(UUIDStock * stock, UUIDStock * newUUIDS);
 void printArray(UUIDArray * stock);
@@ -165,9 +166,9 @@ int sendSellTransaction( connection * con, char * prodName,int amount,
 
     if((r=receiveTransType(con)) == OK){
 
-      stock->uuids = realloc(stock->uuids,(stock->last - amount)*sizeof(UUID));
+      // stock->uuids = realloc(stock->uuids,(stock->last - amount)*sizeof(UUID));
       stock->last-=amount;
-      stock->size=stock->last - amount;
+      stock->size;
         sendACK(con);
         *finalGain=receiveInt(con);
         return 0;

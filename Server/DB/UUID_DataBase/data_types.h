@@ -12,7 +12,7 @@ typedef struct{
     transType_t transType;
     char prodName[MAX_PROD_NAME_LENGHT+1];  //+1 because of \0
 
-} transaction;
+} query_t;
 
 typedef struct{
     uint64_t  high;
