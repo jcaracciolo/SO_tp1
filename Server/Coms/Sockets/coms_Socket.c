@@ -8,6 +8,7 @@
 #include <poll.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+
 #include "../coms.h"
 
 struct connection_t {
@@ -21,6 +22,7 @@ struct connection_t {
 connection * connectToAddres(char * id) {
 	connection * con = malloc(sizeof(connection));
     struct sockaddr_in host_addr;
+
 	struct hostent * host;
 	char ip[255];
 	char port[6];
@@ -42,30 +44,33 @@ connection * connectToAddres(char * id) {
 
 	if (strcmp(ip, "") == 0) {
 		host = gethostbyname("localhost");
-	    if (host == NULL) {
+		if (host == NULL) {
 			fprintf(stderr,"ERROR, no such host\n");
 			exit(0);
 		}
-    	bcopy((char *)host->h_addr, (char *)&host_addr.sin_addr.s_addr, host->h_length);
+		bcopy((char *)host->h_addr, (char *)&host_addr.sin_addr.s_addr, host->h_length);
 	} else {
-    	host_addr.sin_addr.s_addr = inet_addr(ip);
+		host_addr.sin_addr.s_addr = inet_addr(ip);
 	}
 
+
+
 	int portno = atoi(port);
-    con->sockFD = socket(AF_INET, SOCK_STREAM, 0);
-    if (con->sockFD < 0) {
+	con->sockFD = socket(AF_INET, SOCK_STREAM, 0);
+	if (con->sockFD < 0) {
 		puts("ERROR opening socket");
 		exit(1);
 	}
 
-    host_addr.sin_family = AF_INET;
-    host_addr.sin_port = htons(portno);
-    if (connect(con->sockFD,(struct sockaddr *)&host_addr,sizeof(host_addr)) < 0) {
-        puts("ERROR connecting");
-        exit(1);
-    }
+	host_addr.sin_family = AF_INET;
+	host_addr.sin_port = htons(portno);
+	if (connect(con->sockFD,(struct sockaddr *)&host_addr,sizeof(host_addr)) < 0) {
+		puts("ERROR connecting");
+		exit(1);
+	}
 
-    return con;
+
+	return con;
 }
 
 int openAdress(char * addr) {
@@ -99,6 +104,10 @@ int openAdress(char * addr) {
 	return sockfd;
 }
 
+void openConnection(connection* con){
+
+}
+
 connection * readNewConnection(int fd) {	
 	connection * con = malloc(sizeof(connection));
 	struct sockaddr_in connectedSocket;
@@ -119,7 +128,7 @@ connection * readNewConnection(int fd) {
 	con->sockFD = accept(fd, (struct sockaddr *) &connectedSocket, &socklen); // waiting for client to connect
 	if (con->sockFD < 0) {
 		puts("ERROR on accept");
-		exit(1);
+		return NULL;
 	}
 	return con;
 }

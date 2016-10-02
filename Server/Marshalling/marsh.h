@@ -7,9 +7,14 @@
 //Amount of time in seconds it will wait until it tries again to connect
 #define CONN_TRY_INT
 
+#define INITIALERROR 100
+
 typedef struct adress_t address;
 
 typedef struct connection_t connection;
+
+typedef enum  {NOSTOCK=INITIALERROR,MAXUUIDS, MOREMONEY, LESSMONEY, INVALIDUUID} conerrors_t;
+
 
 //establishes a connection to the address
 connection * connect(char * addr);
@@ -30,11 +35,14 @@ int sendInt(connection * con, int num);
 int receiveInt(connection * con);
 
 //sends the UUID array to the specified connection
-int sendUUIDArray(connection * con, UUIDArray * array, int totalCost);
+int sendUUIDArray(connection * con, UUIDArray * array);
+
+int sendSellTransaction( connection * con, char * prodName,int amount,
+                         int minPrice, UUIDStock * stock, int * finalGain,int client);
 
 //recieves a UUID array from the conection and stores it in array
 //Asumes the array is empty.
-UUIDStock* receiveUUIDArray(connection * con,int n,int* cost);
+UUIDStock* receiveUUIDArray(connection * con,int n);
 
 //sned transType
 int sendTransType(connection * con, transType_t transType);
@@ -52,7 +60,19 @@ int getPriceFromDB(connection * con, char * prodName,int client);
 //Receives the price from the bd
 int getStockFromDB(connection * con, char * prodName, int client);
 
+void printStock(UUIDStock * stock);
+
+
 //Tries to buy with the determined price
 int sendBuyTransaction( connection * con, char * prodName, int amount,
                         int maxPrice, UUIDStock * stock, int * finalCost,int client);
+
+int getBuySellInfo(connection* con,int* client, char* prodName, int* amount,int* pay);
+
+
+int getRequestedProduct(connection* con,int* client,char* prodName);
+
+void completePurchase(connection* con,UUIDArray* data,int payed);
+
+
 #endif

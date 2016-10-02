@@ -15,5 +15,6 @@ connection * connectToAddres(char * addr);
 int openAdress(char * ip);
 connection * readNewConnection(int serverFD);
 void endConnection(connection * con);
+void openConnection(connection* con);
 
 #endif
