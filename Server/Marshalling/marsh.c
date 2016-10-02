@@ -109,6 +109,14 @@ int getStockFromDB(connection * con, char * prodName,int client){
   return receiveInt(con);
 }
 
+int isProdInDB(connection * con, char * prodName,int client) {
+  sendTransType(con, EXISTS);
+    if(!receiveACK(con)) return NOCONECTION;
+  sendInt(con,client);
+    if(!receiveACK(con)) return NOCONECTION;
+  sendString(con, prodName);
+  return receiveInt(con);
+}
 
 int getRequestedProduct(connection* con,int* client,char* prodName){
     sendACK(con);

@@ -51,6 +51,28 @@ int exitDB(dbdata_t * dbData) {
     return 0;
 }
 
+int existsInDB(dbdata_t * dbData, char * prodName) {    
+    char str[MAX_BUFF] = {0};
+    int nameLen = strlen(prodName);
+    char * query = malloc(nameLen + 70); // query + name + '\n'
+
+    sprintf(query, "select name from product where name = '%s';\n", prodName);
+
+    write(dbData->fdin, query, strlen(query));
+
+    read(dbData->fdout, str, MAX_BUFF);
+    if (strncmp(str, query, strlen(query)) != 0) {
+        return -1;
+    }
+
+    if (strcmp(str + strlen(query), "") == 0) {
+        free(query);
+        return 0;        
+    }
+    free(query);
+    return 1;
+}
+
 int getPrice(dbdata_t * dbData, char * prodName) {
 	char str[MAX_BUFF] = {0};
 	int nameLen = strlen(prodName);

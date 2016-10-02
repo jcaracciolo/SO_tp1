@@ -42,6 +42,23 @@ void createChild(connection * con) {
     }
 }
 
+void attExistsTransaction(connection * con) {    
+    int client;
+    char prodName[MAX_PROD_NAME_LENGHT];
+
+    getRequestedProduct(con,&client,prodName);
+
+    sem_wait(sem);
+    int exists = existsInDB(DBdata, prodName);
+    sem_post(sem);
+
+    char buff[MAX_BUF];
+    sprintf(buff,"Attending client %d request existence of product %s",client,prodName);
+    log(INFO,buff);
+
+    sendInt(con, exists);
+}
+
 void attPriceTransaction(connection * con){
     int client;
     char prodName[MAX_PROD_NAME_LENGHT];
@@ -278,6 +295,9 @@ void assist(connection* con) {
                         case BUY:
                             attBuyTransaction(con);
                             break;
+                        case EXISTS:
+                            attExistsTransaction(con);
+                            break;
                         case CLOSE:
                             printf("finished transaction\n");
                             sem_close(sem);
@@ -415,7 +435,6 @@ void drawChart(){
 void initializeDB(dbdata_t * DBdata) {
     createTable(DBdata);
     insertIntoTable(DBdata, "papa", 4, 3);
-    insertIntoTable(DBdata, "papa", 8000000, 3);
     insertIntoTable(DBdata, "tomate", 8000000, 6);
 }
 
