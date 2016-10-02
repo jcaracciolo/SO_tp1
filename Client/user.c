@@ -7,6 +7,10 @@
 
 #define MAX_BUF 255
 
+int readArgs3(char * args, char * arg1, char * arg2, char * arg3);
+voiddisplayHelp();
+int isNumber(char * str);
+
  int main() {
  	int c, i = 0;
  	char entry[MAX_BUF];
@@ -90,35 +94,12 @@
  		
 
  		} else if (len >= 4 && strncmp(entry, "buy ", 4) == 0) {
- 			char prodName[MAX_BUF], quantity[MAX_BUF], maxPrice[MAX_BUF];
- 			i = 4;
- 			int j = 0;
-			while(entry[i] != ' ') {
- 				if (entry[i] == '\0') {
- 					puts("Error on command arguments.");
- 					break;
- 				}
- 				prodName[j++] = entry[i++];
- 			}
- 			prodName[j] = '\0';
- 			i++;
+ 			char prodName[MAX_BUF], quantity[MAX_BUF], maxPrice[MAX_BUF]; 			
 
- 			j = 0;
- 			while(entry[i] != ' ') {
- 				if (entry[i] == '\0') {
- 					puts("Error on command arguments.");
- 					break;
- 				}
- 				quantity[j++] = entry[i++];
+ 			if (readArgs3(entry + 4, &prodName, &quantity, &maxPrice) != 0 || !isNumber(quantity) || !isNumber(maxPrice)) {
+ 				puts("Error reading arguments");
+ 				continue;
  			}
- 			quantity[j] = '\0';
- 			i++;
-
- 			j = 0;
- 			while(entry[i] != '\0') {
- 				maxPrice[j++] = entry[i++];
- 			}
- 			maxPrice[j] = '\0';
 
  			int totalPrice, ack;
    			ack = sendBuyTransaction(con, prodName, atoi(quantity), atoi(maxPrice), stock, &totalPrice,pid);
@@ -132,34 +113,11 @@
 
  		} else if (len >= 5 && strncmp(entry, "sell ", 5) == 0) {
  			char prodName[MAX_BUF], quantity[MAX_BUF], minPrice[MAX_BUF];
- 			i = 5;
- 			int j = 0;
-			while(entry[i] != ' ') {
- 				if (entry[i] == '\0') {
- 					puts("Error on command arguments");
- 					break;
- 				}
- 				prodName[j++] = entry[i++];
- 			}
- 			prodName[j] = '\0';
- 			i++;
 
- 			j = 0;
- 			while(entry[i] != ' ') {
- 				if (entry[i] == '\0') {
- 					puts("Error on command arguments");
- 					break;
- 				}
- 				quantity[j++] = entry[i++];
+ 			if (readArgs3(entry + 5, &prodName, &quantity, &minPrice) != 0 || !isNumber(quantity) || !isNumber(minPrice)) {
+ 				puts("Error reading arguments");
+ 				continue;
  			}
- 			quantity[j] = '\0';
- 			i++;
-
- 			j = 0;
- 			while(entry[i] != '\0') {
- 				minPrice[j++] = entry[i++];
- 			}
- 			minPrice[j] = '\0';
 
  			int profit, res;
   			int ack = sendSellTransaction( con, prodName, atoi(quantity), atoi(quantity) * atoi(minPrice), stock, &profit, pid);
@@ -172,6 +130,44 @@
    		}
 	}
 
+ }
+
+int isNumber(char * str) {
+	int i = 0;
+	while (str[i] != '\0') {
+		if (!isdigit(str[i++]))
+			return 0;
+	}
+	return 1;
+}
+
+int readArgs3(char * args, char * arg1, char * arg2, char * arg3) {
+	int i = 0, j = 0;
+	while(args[i] != ' ') {
+		if (args[i] == '\0') {
+			return -1;
+		}
+		arg1[j++] = args[i++];
+	}
+	arg1[j] = '\0';
+	i++;
+
+	j = 0;
+	while(args[i] != ' ') {
+		if (args[i] == '\0') {
+			return -1;
+		}
+		arg2[j++] = args[i++];
+	}
+	arg2[j] = '\0';
+	i++;
+
+	j = 0;
+	while(args[i] != '\0') {
+		arg3[j++] = args[i++];
+	}
+	arg3[j] = '\0';
+	return 0;
  }
 
 
