@@ -13,6 +13,7 @@ int readArgs3(char * args, char * arg1, char * arg2, char * arg3);
 voiddisplayHelp();
 int isNumber(char * str);
 productInfo_t * getProduct(productInfo_t * products, char * prodName);
+void printProduct(productInfo_t * product);
 
  int main() {
  	int c, i = 0;
@@ -78,7 +79,13 @@ productInfo_t * getProduct(productInfo_t * products, char * prodName);
  			return 0;
 
 
- 		} else if (len >= 10 && strncmp(entry, "get stock ", 10) == 0) {
+ 		} else if (len >= 10 && strncmp(entry, "print inventory", 15) == 0) {
+  			for (i= 0; i < MAX_PRODUCTS; i++) {
+ 				printProduct(&(products[i]));
+ 			}
+
+
+		} else if (len >= 10 && strncmp(entry, "get stock ", 10) == 0) {
  			char prodName[MAX_BUF];
  			i = 10;
  			int j = 0;
@@ -124,8 +131,14 @@ productInfo_t * getProduct(productInfo_t * products, char * prodName);
  				continue;
  			}
 
+ 			productInfo_t * prod = getProduct(products, prodName);
+ 			if (prod == NULL) {
+ 				puts("Product does not exists.");
+ 				continue;
+ 			}
+
  			int totalPrice=0, ack;
-   			ack = sendBuyTransaction(con, prodName, atoi(quantity), atoi(maxPrice), stock, &totalPrice,pid);
+   			ack = sendBuyTransaction(con, prod->prodName, atoi(quantity), atoi(maxPrice), prod->stock, &totalPrice,pid);
    			if (ack < 0 || money < totalPrice) {
    				printError(ack);
    			} else {
@@ -164,6 +177,10 @@ productInfo_t * getProduct(productInfo_t * products, char * prodName);
 	}
 
  }
+
+void printProduct(productInfo_t * product) {
+  printf("%s --> %i\n", product->prodName, countStock(product->stock));
+}
 
 char* conerrormsg[]={
 		"Conection lost",
@@ -249,6 +266,7 @@ int readArgs3(char * args, char * arg1, char * arg2, char * arg3) {
 
  void displayHelp() {
  	puts("Commands available:");
+ 	puts("\tprint inventory");
  	puts("\tcan i buy [product name]");
  	puts("\tget stock [product name]");
  	puts("\tget price [product name]");

@@ -15,6 +15,10 @@ void printArray(UUIDArray * stock);
 //   return connectToAddres(addr);
 // }
 
+int countStock(UUIDStock * stock) {
+  return stock->last;
+}
+
 int disconnect(connection * con){
   sendTransType(con, CLOSE);
   endConnection(con);
@@ -277,6 +281,7 @@ int sendBuyTransaction( connection * con, char * prodName,int amount,
     // printf("The transaction went through:\n");
     sendACK(con);
     //This means the transaction went through
+
     return 0;
 
 
