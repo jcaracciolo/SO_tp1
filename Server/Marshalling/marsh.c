@@ -130,7 +130,7 @@ int getRequestedProduct(connection* con,int* client,char* prodName){
     return 0;
 }
 
-readAddrFromConfigFile(char * path, char * addr) {
+int readAddrFromConfigFile(char * path, char * addr) {
     FILE * addrSource = fopen(path, "r");
     if (addrSource == NULL) {
       return -1;
@@ -260,7 +260,6 @@ int sendBuyTransaction( connection * con, char * prodName,int amount,
     sendString(con,prodName);
 
     if((r=receiveTransType(con)) == SUCCESS){
-        printf("revieving ok");
 
       sendACK(con);
       UUIDStock *ans=receiveUUIDArray(con,amount);
@@ -337,6 +336,16 @@ void addUUIDsToStock(UUIDStock * stock, UUIDStock * newUUIDS){
 
   free(newUUIDS->uuids);
   free(newUUIDS);
+}
+
+
+void freeCon(connection * con) {
+    freeConnection(con);
+}
+
+void freeStock(UUIDStock * stock) {
+    free(stock->uuids);
+    free(stock);
 }
 
 int completePurchase(connection* con,UUIDArray* data,int payed){

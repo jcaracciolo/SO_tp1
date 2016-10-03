@@ -2,6 +2,13 @@
 #define CLIENT_H
 
 #include "../Server/DB/UUID_DataBase/data_types.h"
+#include "../Server/Coms/coms.h"
+#include "../Server/Marshalling/marsh.h"
+#include "../Server/DB/UUID_DataBase/data_types.h"
+#include <sys/types.h>
+#include <unistd.h>
+#include <ctype.h>
+
 
 //If you want the client to trade another good, just increase MAX_PRODUCTS
 //and add the product name to the validProd list.
@@ -23,6 +30,17 @@ typedef struct{
     UUIDStock * stock;
 } productInfo_t;
 
+char* conerrormsg[]={
+        "Conection lost",
+        "Insuficient amount of products",
+        "Insuficient stock",
+        "Maximun amount of UUIDs per transaction exceded",
+        "Money provided not enough to concrete purchase",
+        "Transaction revenue not enough to reach minimal payment",
+        "Invalid UUIDs",
+        "No such element available"};
+
+void printError(conerrors_t error);
 
 
 #endif

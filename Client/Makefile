@@ -24,8 +24,8 @@ all:
 	gcc -g $(OBJ) client.o -o client -lm
 	rm *.o
 
-	gcc -c $(COMS)  $(MARSH) $(COMSh) user.c
-	gcc $(OBJ) user.o -o user
+	gcc -g -c $(COMS)  $(MARSH) $(COMSh) user.c
+	gcc -g $(OBJ) user.o -o user
 	rm *.o
 
 clean:

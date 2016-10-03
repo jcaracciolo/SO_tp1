@@ -26,13 +26,6 @@ struct Deleter : public std::unary_function<int,bool> {
     bool operator() (const UUID id) {delete(&id);}
 };
 
-extern "C" void exitUUID(){
-    std::for_each (database.begin (), database.end (), Deleter());
-    delete(&database);
-}
-
-
-
 
 extern "C" void UUIDadd(UUID id){
     database.insert(id);

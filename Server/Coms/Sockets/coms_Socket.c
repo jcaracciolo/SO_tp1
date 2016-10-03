@@ -15,6 +15,10 @@ struct connection_t {
 	int sockFD;
 };
 
+void freeConnection(connection * con) {
+	return;
+}
+
 /* addr is '\0' ended and has an addres and the host name
  * separated by '.'
  * example: 5545.hostname

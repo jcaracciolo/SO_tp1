@@ -1,19 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../Server/Coms/coms.h"
-#include "../Server/Marshalling/marsh.h"
-#include "../Server/DB/UUID_DataBase/data_types.h"
 #include "client.h"
 
 #define MAX_BUF 255
 
 
 int readArgs3(char * args, char * arg1, char * arg2, char * arg3);
-voiddisplayHelp();
+void displayHelp();
 int isNumber(char * str);
 productInfo_t * getProduct(productInfo_t * products, char * prodName);
 void printProduct(productInfo_t * product);
+int initProducts(productInfo_t * products);
+void releaseProducts(productInfo_t * products);
 
  int main() {
  	int c, i = 0;
@@ -68,6 +67,8 @@ void printProduct(productInfo_t * product);
 
  		} else if (strcmp(entry, "exit") == 0) {
  			puts("Disconecting...");
+			releaseProducts(products);
+            freeCon(con);
  			disconnect(con);
  			return 0;
 
@@ -138,7 +139,7 @@ void printProduct(productInfo_t * product);
  		} else if (len >= 4 && strncmp(entry, "buy ", 4) == 0) {
  			char prodName[MAX_BUF], quantity[MAX_BUF], maxPrice[MAX_BUF]; 			
 
- 			if (readArgs3(entry + 4, &prodName, &quantity, &maxPrice) != 0 || !isNumber(quantity) || !isNumber(maxPrice)) {
+ 			if (readArgs3(entry + 4, (char*)&prodName, (char*)&quantity, (char*)&maxPrice) != 0 || !isNumber(quantity) || !isNumber(maxPrice)) {
  				puts("Error reading arguments");
  				continue;
  			}
@@ -162,7 +163,7 @@ void printProduct(productInfo_t * product);
  		} else if (len >= 5 && strncmp(entry, "sell ", 5) == 0) {
  			char prodName[MAX_BUF], quantity[MAX_BUF], minPrice[MAX_BUF];
 
- 			if (readArgs3(entry + 5, &prodName, &quantity, &minPrice) != 0 || !isNumber(quantity) || !isNumber(minPrice)) {
+ 			if (readArgs3(entry + 5,(char*) &prodName, (char*)&quantity, (char*)&minPrice) != 0 || !isNumber(quantity) || !isNumber(minPrice)) {
  				puts("Error reading arguments");
  				continue;
  			}
@@ -190,19 +191,18 @@ void printProduct(productInfo_t * product);
 
  }
 
+void releaseProducts(productInfo_t * products) {
+	int i;
+	for (i= 0; i < MAX_PRODUCTS; i++) {
+		freeStock(products[i].stock);
+	}
+}
+
 void printProduct(productInfo_t * product) {
   printf("%s --> %i\n", product->prodName, countStock(product->stock));
 }
 
-char* conerrormsg[]={
-		"Conection lost",
-		"Insuficient amount of products",
-		"Insuficient stock",
-		"Maximun amount of UUIDs per transaction exceded",
-		"Money provided not enough to concrete purchase",
-		"Transaction revenue not enough to reach minimal payment",
-		"Invalid UUIDs",
-		"No such element available"};
+
 
 void printError(conerrors_t error){
 	if(error > NOSUCHELEMENT){

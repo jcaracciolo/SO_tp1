@@ -68,6 +68,7 @@ void createChild(connection * con) {
 		printf("Child fork failed\n");
 	} else {
         endConnection(con);
+        freeCon(con);
     }
 }
 
@@ -376,6 +377,7 @@ void assist(connection* con) {
                             break;
                         case CLOSE:
                             attCloseTransaction(con);
+                            freeCon(con);
                             exit(0);
                     }
 
@@ -518,7 +520,6 @@ int main(int argc, char *argv[]) {
                 char smth[MAX_BUF] = {0};
                 read(0, smth, 1);
                 smth[1] = '\0';
-                printf("read:.%s.\n", smth);
                 if(strcmp(smth, "q") == 0) {
                     break;
 

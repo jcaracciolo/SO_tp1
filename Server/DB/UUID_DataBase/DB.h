@@ -17,8 +17,6 @@ int UUIDcontains(UUID id);
 
 UUID getRandomUUID();
 
-void exitUUID();
-
 
 
 #endif //SO_TP1_DB_H

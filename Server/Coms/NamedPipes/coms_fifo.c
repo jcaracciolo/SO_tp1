@@ -30,6 +30,12 @@ int countDigits(int n) {
     return count;
 }
 
+void freeConnection(connection * con) {
+	free(con->inPath);
+	free(con->outPath);
+	free(con);
+}
+
 		/** 
 	  * Create paths for two pipes (in and out) with the pid of the process.
 	  * This way every pipe will have a unique name.

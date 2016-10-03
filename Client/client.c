@@ -115,17 +115,27 @@ int think(connection * con, int pid, int cash){
     // if(a == '1') action = STOCK;
     // if(a == '2') action = BUY;
     // if(a == '3') action = SELL;
-
+      int ans=0;
     switch (action) {
       case PRICE:
         printf("Consulting price\n");
-        updatePrice(selectedProduct,getPriceFromDB(con,selectedProduct->prodName,pid));
+            ans=getPriceFromDB(con,selectedProduct->prodName,pid);
+            if(ans>=0){
+                updatePrice(selectedProduct,ans);
+            }else{
+                printError(ans);
+            }
         break;
       case STOCK:
         printf("Consulting stock\n");
-        selectedProduct->remoteStock = getStockFromDB(con,selectedProduct->prodName,pid);
-        break;
-      case BUY:
+            ans=getStockFromDB(con,selectedProduct->prodName,pid);
+            if(ans>=0){
+                selectedProduct->remoteStock=ans;
+            }else{
+                printError(ans);
+            }
+            break;
+        case BUY:
         printf("Trying to buy\n");
         cost = decideWhatToBuy(con, selectedProduct,cash,conservative,pid);
         cash -= cost; //If you are honest, dont comment this line
@@ -176,51 +186,6 @@ int main(int argc, char * argv[]) {
     srand(pid); //TODO change time to the PID of the process
     think(con, pid,5000);
 
-    // puts("Price of papa?");
-    // int pricePapa = getPriceFromDB(con,"papa",pid);
-    // printf("price of papa %d\n", pricePapa);
-    //
-    // puts("Stock of papa?");
-    // int stockPapa = getStockFromDB(con,"papa",pid);
-    // printf("first stock %d\n", stockPapa);
-    //
-    // //START BUY
-    // puts("Trying to buy 2");
-    // printf("before buying i got %d papas\n", stock->last);
-    // int totalPrice,res;
-    // res = sendBuyTransaction(con, "papa\0", 3, 20, stock,&totalPrice,pid);
-    // printf("after paying %d, i got %d papas\n",totalPrice, stock->last);
-    //
-    // //END BUY
-    //
-    // puts("Stock of papa?");
-    // stockPapa = getStockFromDB(con,"papa\0",getpid());
-    // printf("second stock %d\n", stockPapa);
-
-
-
-
-
-    // //START BUY
-    // puts("Trying to sell 1");
-    // printf("before selling i got %d papas\n", stock->last);
-    // int mygain;
-    // res = sendSellTransaction(con, "papa\0", 1, 0, stock,&mygain,pid);
-    // printf("after selling %d, i got %d papas\n",mygain, stock->last);
-    //
-    // //END BUY
-    //
-    // puts("Stock of papa?");
-    // stockPapa = getStockFromDB(con,"papa\0",getpid());
-    // printf("second stock %d\n", stockPapa);
-
-    // puts("Trying to buy at 0$");
-    // printf("before buying i got %d papas\n", stock->last);
-    // res = sendBuyTransaction(con, "papa\0", 3, 0, stock,&totalPrice,pid);
-    // if(res!=0){
-    //     printf("%s\n",conerrors[res-100]);
-    // }
-    // printf("after paying %d, i got %d papas\n",totalPrice, stock->last);
     puts("END TRANSACTION");
 
     disconnect(con);
@@ -360,19 +325,11 @@ int decideWhatToSell(connection * con, productInfo_t * product,
     product->investedInStock = lround((1.0*amount/(product->stock->last + amount))*product->investedInStock);
     return profit;
   }
-  printf("Couldnt sell %d %s %d ack: %d\n",amount,product->prodName,profit,ack);
+  printf("Couldnt sell %d %s %d \n",amount,product->prodName,profit);
+    printError(ack);
   return 0;
 
 }
-char* conerrormsg[]={
-        "Conection lost",
-        "Insuficient amount of products",
-        "Insuficient stock",
-        "Maximun amount of UUIDs per transaction exceded",
-        "Money provided not enough to concrete purchase",
-        "Transaction revenue not enough to reach minimal payment",
-        "Invalid UUIDs",
-        "No such element available"};
 
 void printError(conerrors_t error){
     if(error > NOSUCHELEMENT){

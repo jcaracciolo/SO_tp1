@@ -21,6 +21,10 @@ typedef enum  {NOCONECTION=INT_MIN,INSUFPRODS,NOSTOCK,MAXUUIDS, MOREMONEY, LESSM
 //establishes a connection to the address
 connection * connect(char * addr);
 
+void freeStock(UUIDStock * stock);
+
+void freeCon(connection * con);
+
 //ends all the transa
 int disconnect(connection * con);
 
@@ -78,6 +82,8 @@ int readAddrFromConfigFile(char * path, char * addr);
 int getRequestedProduct(connection* con,int* client,char* prodName);
 
 int completePurchase(connection* con,UUIDArray* data,int payed);
+
+int countStock(UUIDStock * stock);
 
 
 #endif
