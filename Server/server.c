@@ -24,7 +24,7 @@
 #define UUID_CANT 100
 #define SEMNAME "semddmBss"
 
-#define TRACKED_PRODUCTS 4
+#define TRACKED_PRODUCTS 7
 #define TICKS_UNTIL_UPDATE 100
 
 int calculateProdPrice(productPriceData_t * priceData, int currentStock);
@@ -43,10 +43,21 @@ productPriceData_t  priceData[TRACKED_PRODUCTS];
 int initialiceProducts(productPriceData_t * priceData ){
 	// priceData = malloc(sizeof(productPriceData_t)*trackedProducts);
 	//char* prodName, int initalPrice, int initialStock, int priceAt0Stock
-	initialiceProduct(&priceData[0], "papa\0",30,50,10);
-	initialiceProduct(&priceData[1], "tomate\0",100,20,500);
-	initialiceProduct(&priceData[2], "pepino\0",80,10,160);
-	initialiceProduct(&priceData[3], "cebolla\0",50,100,100);
+	initialiceProduct(&priceData[0], "papa",30,100,200);
+	initialiceProduct(&priceData[1], "tomate",100,50,500);
+	initialiceProduct(&priceData[2], "pepino",80,200,1000);
+	initialiceProduct(&priceData[3], "cebolla",50,100,250);
+	initialiceProduct(&priceData[4], "zucchini",160,60,1000);
+	initialiceProduct(&priceData[5], "zapallito",90,150,450);
+	initialiceProduct(&priceData[6], "remolacha",40,50,160);
+
+	    // insertIntoTable(DBdata, "papa", 1000, 3);
+	    // insertIntoTable(DBdata, "tomate", 1000, 4);
+	    // insertIntoTable(DBdata, "pepino", 1000, 5);
+	    // insertIntoTable(DBdata, "zanahoria", 1000, 6);
+	    // insertIntoTable(DBdata, "remolacha", 1000, 7);
+	    // insertIntoTable(DBdata, "zapallito", 1000, 8);
+	    // insertIntoTable(DBdata, "zucchini", 1000, 9);
 
 }
 
@@ -523,7 +534,7 @@ int main(int argc, char *argv[]) {
                 if(strcmp(smth, "q") == 0) {
                     break;
 
-                }                
+                }
                 while(getchar() !=  EOF);
             }
 

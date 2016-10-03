@@ -17,6 +17,8 @@
 #define OPS_PER_TICK 1
 #define MAX_BUF 300
 #define CONSERV_RELATION 3
+#define MAX_CONSERV 5
+#define MAX_TRANSACTION_SIZE 10
 
 
 void printProduct(productInfo_t * product);
@@ -62,9 +64,11 @@ int updateWeights(transType_t action, int cost,int profit, int * priceWeight,
     default:
       break;
   }
+  product->opsSinceStock++;
+  product->opsSincePrice++;
   (*priceWeight) =  product->opsSincePrice + abs(product->priceTrend)
-                    + product->newPrice<=0? 5:0;
-  (*stockWeight) = lround(product->opsSinceStock / 2.0)+ product->remoteStock<0? 5:0;
+                    + product->newPrice<=0? 1000:0;
+  (*stockWeight) = lround(product->opsSinceStock / 2.0)+ product->remoteStock<0? 1000:0;
   (*buyWeight) = lround( product->priceTrend * 2.0 - product->opsSincePrice / 2.0
                         -  product->investedInStock/(2.0 * product->newPrice<=0?1:product->newPrice)
                         + cash / (1.0 * product->newPrice<=0?1000:product->newPrice)) ;
@@ -92,7 +96,7 @@ int think(connection * con, int pid, int cash){
   productInfo_t products[MAX_PRODUCTS];
   transType_t action ;
   initProducts(products);
-  conservative = rand() % 3;
+  conservative = rand() % MAX_CONSERV;
   printf("I am about %d conservative\n", conservative);
 
 
@@ -184,7 +188,7 @@ int main(int argc, char * argv[]) {
 
     connection *con = connectToAddres(buffer);
     srand(pid); //TODO change time to the PID of the process
-    think(con, pid,5000);
+    think(con, pid,2500);
 
     puts("END TRANSACTION");
 
@@ -273,17 +277,20 @@ int decideWhatToBuy(connection * con, productInfo_t * product, int cash,
         return 0;
     }
     int amount = rand() % maxProductsICouldBuy;
+    if(amount > MAX_TRANSACTION_SIZE){
+      amount = MAX_TRANSACTION_SIZE;
+    }
     if(amount <= 0){
         printf("I am trying to buy less than 1\n" );
         return 0;
     }
-    if(amount *product->newPrice > cash){
+    if((int)(amount *product->newPrice*1.1)> cash){
         printf("Dont have enough cash\n" );
         return 0;
     }
     int finalCost = -1;
     int ack = sendBuyTransaction( con, product->prodName, amount,
-                                  amount*product->newPrice,
+                                  (int)(amount*product->newPrice*(1.1)),
                                   product->stock,&finalCost, pid);
     if(ack == 0 && finalCost >= 0){
         printf("succesfuly bought %d %ss for %d\n",amount,product->prodName,finalCost);
@@ -310,6 +317,9 @@ int decideWhatToSell(connection * con, productInfo_t * product,
     return 0;
   }
   int amount = rand() % maxSellAmount;
+  if(amount > MAX_TRANSACTION_SIZE){
+    amount = MAX_TRANSACTION_SIZE;
+  }
   if(amount <= 0){
     printf("I am trying to sell less than 1\n" );
     return 0;
