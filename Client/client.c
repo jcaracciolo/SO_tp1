@@ -179,7 +179,7 @@ int main(int argc, char * argv[]) {
 
     connection *con = connectToAddres(buffer);
     srand(pid); //TODO change time to the PID of the process
-    think(con, pid,30);
+    think(con, pid,5000);
 
     // puts("Price of papa?");
     // int pricePapa = getPriceFromDB(con,"papa",pid);

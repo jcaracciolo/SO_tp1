@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-// #include<curses.h>
 #include <pthread.h>
 #include <time.h>
 #include "Coms/coms.h"
@@ -25,8 +24,8 @@
 #define UUID_CANT 100
 #define SEMNAME "semddmBss"
 
-#define TRACKED_PRODUCTS 2
-#define TICKS_UNTIL_UPDATE 200
+#define TRACKED_PRODUCTS 4
+#define TICKS_UNTIL_UPDATE 100
 
 int calculateProdPrice(productPriceData_t * priceData, int currentStock);
 int initialiceProduct(productPriceData_t * priceData, char* prodName,
@@ -37,18 +36,29 @@ dbdata_t* DBdata;
 char* addrname;
 sem_t* sem;
 int msqid;
+productPriceData_t  priceData[TRACKED_PRODUCTS];
 
 //This allocates and initialices the pricing information for later use
 //when the price needs updating
 int initialiceProducts(productPriceData_t * priceData ){
-	int trackedProducts = 2;
 	// priceData = malloc(sizeof(productPriceData_t)*trackedProducts);
 	//char* prodName, int initalPrice, int initialStock, int priceAt0Stock
-	initialiceProduct(&priceData[0], "papa\0",3,30,10);
-	initialiceProduct(&priceData[1], "tomate\0",10,20,50);
+	initialiceProduct(&priceData[0], "papa\0",30,50,10);
+	initialiceProduct(&priceData[1], "tomate\0",100,20,500);
+	initialiceProduct(&priceData[2], "pepino\0",80,10,160);
+	initialiceProduct(&priceData[3], "cebolla\0",50,100,100);
 
 }
 
+int initialiceProduct(productPriceData_t * priceData, char* prodName,
+											int initialPrice, int initialStock, int priceAt0Stock){
+
+		strcpy(priceData->prodName,prodName);
+		priceData->initialPrice = initialPrice;
+		priceData->initialStock = initialStock;
+		priceData->priceAt0Stock = priceAt0Stock;
+		insertIntoTable(DBdata, prodName, initialStock, initialPrice);
+}
 void createChild(connection * con) {
 	int childPID;
 
@@ -331,6 +341,7 @@ void attCloseTransaction(connection* con){
 
 void deathHandler(int signo){
     sem_close(sem);
+    log(MERROR, "Master server died");
     exit(0);
 }
 
@@ -411,7 +422,7 @@ int main(int argc, char *argv[]) {
             .sa_handler = SIG_DFL,
             .sa_flags = SA_NOCLDWAIT
     };
-    sigaction(SIGCHLD, &sigchld_action, NULL);
+    sigaction(SIGUSR1, &sigchld_action, NULL);
 
 
     int f;
@@ -469,9 +480,7 @@ int main(int argc, char *argv[]) {
 
     puts("Server open. Listening...\n");
 
-		productPriceData_t  priceData[2];
-		printf("Initiazing products\n");
-		initialiceProducts( priceData);
+
 		// printProductPriceData(&priceData[0]);
 		// printProductPriceData(&priceData[1]);
     clock_t begin=clock();
@@ -500,26 +509,28 @@ int main(int argc, char *argv[]) {
                 printf("read:.%s.\n", smth);
                 if(strcmp(smth, "q") == 0) {
                     puts("Closing server...");
-                    return 0;
-                }
+                    kill(0,SIGUSR1);
+                    exit(0);
+                }                
                 while(getchar() !=  EOF);
             }
 
 						if(ticks++ >= TICKS_UNTIL_UPDATE){
-							int i,stock=0,price=0;
+							int i,stock=0,price=0, oldPrice=0;
 							productPriceData_t * selectedPriceData;
-
 							sem_wait(sem);
 							for (i = 0; i < TRACKED_PRODUCTS ; i++) {
 								selectedPriceData = &priceData[i];
-								printProductPriceData(selectedPriceData);
+								// printProductPriceData(selectedPriceData);
 								stock = getStock(DBdata,selectedPriceData->prodName);
+								oldPrice = getPrice(DBdata,selectedPriceData->prodName);
 								price = calculateProdPrice(selectedPriceData, stock);
 								updatePrice(DBdata, selectedPriceData->prodName, price);
-								printf("Updating price %s to %d\n",  selectedPriceData->prodName,price );
+								printf("Updating price of %ss from %d to %d\n",
+								  			selectedPriceData->prodName,oldPrice,price);
 							}
 							sem_post(sem);
-
+							printf("\n\n");
 							ticks = 0;
 						}
 
@@ -551,14 +562,15 @@ void drawChart(){
 
 void initializeDB(dbdata_t * DBdata) {
     createTable(DBdata);
+		initialiceProducts(priceData);
 
-    insertIntoTable(DBdata, "papa", 1000, 3);
-    insertIntoTable(DBdata, "tomate", 1000, 4);
-    insertIntoTable(DBdata, "pepino", 1000, 5);
-    insertIntoTable(DBdata, "zanahoria", 1000, 6);
-    insertIntoTable(DBdata, "remolacha", 1000, 7);
-    insertIntoTable(DBdata, "zapallito", 1000, 8);
-    insertIntoTable(DBdata, "zucchini", 1000, 9);
+    // insertIntoTable(DBdata, "papa", 1000, 3);
+    // insertIntoTable(DBdata, "tomate", 1000, 4);
+    // insertIntoTable(DBdata, "pepino", 1000, 5);
+    // insertIntoTable(DBdata, "zanahoria", 1000, 6);
+    // insertIntoTable(DBdata, "remolacha", 1000, 7);
+    // insertIntoTable(DBdata, "zapallito", 1000, 8);
+    // insertIntoTable(DBdata, "zucchini", 1000, 9);
 }
 
 int connectDB(dbdata_t* DBdata){
@@ -609,14 +621,7 @@ void initializeUUID(unsigned int n){
 }
 
 
-int initialiceProduct(productPriceData_t * priceData, char* prodName,
-											int initialPrice, int initialStock, int priceAt0Stock){
 
-		strcpy(priceData->prodName,prodName);
-		priceData->initialPrice = initialPrice;
-		priceData->initialStock = initialStock;
-		priceData->priceAt0Stock = priceAt0Stock;
-}
 
 int printProductPriceData(productPriceData_t * priceData){
 	printf("Pricing data for %s\n", priceData->prodName);
