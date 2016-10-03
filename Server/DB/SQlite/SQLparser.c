@@ -51,14 +51,36 @@ int exitDB(dbdata_t * dbData) {
     return 0;
 }
 
+int existsInDB(dbdata_t * dbData, char * prodName) {
+    char str[MAX_BUFF] = {0};
+    int nameLen = strlen(prodName);
+    char * query = malloc(nameLen + 70); // query + name + '\n'
+
+    sprintf(query, "select name from product where name = '%s';\n", prodName);
+
+    write(dbData->fdin, query, strlen(query));
+
+    read(dbData->fdout, str, MAX_BUFF);
+    if (strncmp(str, query, strlen(query)) != 0) {
+        return -1;
+    }
+
+    if (strcmp(str + strlen(query), "") == 0) {
+        free(query);
+        return 0;
+    }
+    free(query);
+    return 1;
+}
+
 int getPrice(dbdata_t * dbData, char * prodName) {
 	char str[MAX_BUFF] = {0};
-	int nameLen = strlen(prodName);
-	char * query = malloc(nameLen + 50); // query + name + '\n'
+    int nameLen = strlen(prodName);
+    char * query = calloc(nameLen + 50,1); // query + name + '\n'
 
-	sprintf(query, "select price from product where name = '%s';\n", prodName);
+    sprintf(query, "select price from product where name = \'%s\';\n", prodName);
 
-	write(dbData->fdin, query, strlen(query));
+    write(dbData->fdin, query, strlen(query));
 
 	read(dbData->fdout, str, MAX_BUFF);
     if (strncmp(str, query, strlen(query)) != 0) {
@@ -70,7 +92,7 @@ int getPrice(dbdata_t * dbData, char * prodName) {
 	free(query);
 
 	return atoi(ans);
-
+	
 }
 
 int getStock(dbdata_t * dbData, char * prodName) {
@@ -89,7 +111,7 @@ int getStock(dbdata_t * dbData, char * prodName) {
 
 	char * ans = str + strlen(query);
 
-	free(query);
+    free(query);
 
 	return atoi(ans);
 
@@ -119,7 +141,7 @@ int updateStock(dbdata_t * dbData, char * prodName, int stock) {
     char str[MAX_BUFF] = {0};
     int nameLen = strlen(prodName);
     char * query = calloc(nameLen + 57 + 20, 1); // query + name + stock + price '\n'    (numbers must have less than 10 digits)
-		
+
     sprintf(query, "update product set stock = %i where name = '%s';\n", stock, prodName);
 
     write(dbData->fdin, query, strlen(query));

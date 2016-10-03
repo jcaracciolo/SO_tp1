@@ -27,5 +27,7 @@ int updateStock(dbdata_t * dbData, char * prodName, int stock);
 
 int updatePrice(dbdata_t * dbData, char * prodName, int price);
 
+int existsInDB(dbdata_t * dbData, char * prodName) ;
+
 
 #endif

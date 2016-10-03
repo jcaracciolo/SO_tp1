@@ -62,6 +62,8 @@ int getPriceFromDB(connection * con, char * prodName,int client);
 //Receives the price from the bd
 int getStockFromDB(connection * con, char * prodName, int client);
 
+int isProdInDB(connection * con, char * prodName,int client);
+
 void printStock(UUIDStock * stock);
 
 

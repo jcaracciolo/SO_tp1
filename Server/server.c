@@ -21,7 +21,7 @@
 #define PATHDBOUT "/tmp/fifoDBserverOut"
 #define MAX_BUF 300
 #define UUID_CANT 100
-#define SEMNAME "semDBss"
+#define SEMNAME "semddmBss"
 
 
 
@@ -45,6 +45,23 @@ void createChild(connection * con) {
 	} else {
         endConnection(con);
     }
+}
+
+void attExistsTransaction(connection * con) {
+    int client;
+    char prodName[MAX_PROD_NAME_LENGHT];
+
+    getRequestedProduct(con,&client,prodName);
+
+    sem_wait(sem);
+    int exists = existsInDB(DBdata, prodName);
+    sem_post(sem);
+
+    char buff[MAX_BUF];
+    sprintf(buff,"Attending client %d request existence of product %s",client,prodName);
+    log(INFO,buff);
+
+    sendInt(con, exists);
 }
 
 void attPriceTransaction(connection * con){
@@ -91,27 +108,49 @@ void attBuyTransaction(connection * con){
     sprintf(buff,"Attending buy trans for client %d, wanting to buy %d of %s at a max of $ %d ",client,amount,prodName,maxPay);
     log(INFO,buff);
 
+
+    if(amount > MAX_UUIDS_PER_ARRAY) {
+        sprintf(buff, "Buy transaction from %d - purchase too big (%d). Max amount per purchase: %d",client, amount,MAX_UUIDS_PER_ARRAY);
+        log(WARNING, buff);
+        sendInt(con,MAXUUIDS);
+        return MAXUUIDS;
+    }
+
+
     UUIDArray tdata;
     tdata.size=amount;
     pthread_t UUIDthread;
 
+
     int err = pthread_create(&(UUIDthread), NULL, &getNUUID, (void *)&tdata);
     if (err != 0) {
-        //TODO make something
+        sprintf(buff, "ERROR CREATING A THREAD, ASSISTANT MUST EXIT",client,prodName);
+        log(MERROR, buff);
+        sendInt(con,NOCONECTION);
+        //TODO liberar cosas
+        exit(0);
     }
 
 
     sem_wait(sem);
+
+    if(!existsInDB(DBdata,prodName)){
+        sem_post(sem);
+        sprintf(buff, "Buy transaction from %d - %s not a valid element",client,prodName);
+        log(WARNING, buff);
+        sendInt(con,NOSUCHELEMENT);
+        return NOSUCHELEMENT;
+    }
+
     int price = getPrice(DBdata, prodName);
     int stock = getStock(DBdata, prodName);
 
+    sprintf(buff,"Buy transaction from %d - %s stock: %d out of %d price: %d",client,prodName,amount,stock,price);
+    log(MERROR,buff);
 
     if (price * amount <= maxPay && stock >= amount && amount<=MAX_UUIDS_PER_ARRAY) {
 
-        printf("amount: %i\n", amount);
-        printf("old Stock: %i\n", stock);
         updateStock(DBdata, prodName, stock - amount);
-        printf("New Stock: %i\n", getStock(DBdata, prodName));
 
         sprintf(buff,"Buy transaction from %d - %s stock: %d out of %d price: %d out of %d checks out",client,prodName,amount,stock,maxPay,price*amount);
         log(INFO,buff);
@@ -131,13 +170,6 @@ void attBuyTransaction(connection * con){
             log(WARNING, buff);
             sendInt(con,NOSTOCK);
             return STOCK;
-        }
-
-        if(amount > MAX_UUIDS_PER_ARRAY) {
-            sprintf(buff, "Buy transaction from %d - purchase too big (%d). Max amount per purchase: %d",client, amount,MAX_UUIDS_PER_ARRAY);
-            log(WARNING, buff);
-            sendInt(con,MAXUUIDS);
-            return MAXUUIDS;
         }
 
     }
@@ -167,6 +199,14 @@ void attSellTransaction(connection * con){
     sprintf(buff,"Attending sell trans for client %d, wanting to sell %d of %s at a min of $ %d ",client,amount,prodName,minPay);
     log(INFO,buff);
 
+
+    if(amount > MAX_UUIDS_PER_ARRAY) {
+        sprintf(buff, "Sell transaction from %d - transaction too big (%d). Max amount per purchase: %d",client, amount,MAX_UUIDS_PER_ARRAY);
+        log(WARNING, buff);
+        sendInt(con,MAXUUIDS);
+        return MAXUUIDS;
+    }
+
     threadData tdata;
     tdata.n=amount;
     tdata.con=con;
@@ -175,17 +215,30 @@ void attSellTransaction(connection * con){
 
     int err = pthread_create(&(UUIDthread), NULL, &readNUUID, (void *)&tdata);
     if (err != 0) {
-        //TODO make something
+        sprintf(buff, "ERROR CREATING A THREAD, ASSISTANT MUST EXIT",client,prodName);
+        log(MERROR, buff);
+        sendInt(con,NOCONECTION);
+        //TODO liberar cosas
+        exit(0);
     }
 
     sem_wait(sem);
+
+    if(!existsInDB(DBdata,prodName)){
+        sem_post(sem);
+        sprintf(buff, "Buy transaction from %d - %s not a valid element",client,prodName);
+        log(WARNING, buff);
+        sendInt(con,NOSUCHELEMENT);
+        return NOSUCHELEMENT;
+    }
+
     int price = getPrice(DBdata, prodName);
     int stock = getStock(DBdata, prodName);
 
     void* ret;
     pthread_join(UUIDthread, &ret);
 
-    if (price * amount >= minPay && amount<=MAX_UUIDS_PER_ARRAY && ret==0) {
+    if (price * amount >= minPay && ret==0) {
 
         printf("amount: %i\n", amount);
         printf("old Stock: %i\n", stock);
@@ -215,13 +268,6 @@ void attSellTransaction(connection * con){
                     price * amount);
             log(WARNING, buff);
             return LESSMONEY;
-        }
-
-        if(amount > MAX_UUIDS_PER_ARRAY) {
-            sprintf(buff, "Sell transaction from %d - transaction too big (%d). Max amount per purchase: %d",client, amount,MAX_UUIDS_PER_ARRAY);
-            log(WARNING, buff);
-            sendInt(con,MAXUUIDS);
-            return MAXUUIDS;
         }
 
         if(ret!=0){
@@ -282,6 +328,9 @@ void assist(connection* con) {
                             break;
                         case BUY:
                             attBuyTransaction(con);
+                            break;
+                        case EXISTS:
+                            attExistsTransaction(con);
                             break;
                         case CLOSE:
                             printf("finished transaction\n");
@@ -422,9 +471,14 @@ void drawChart(){
 
 void initializeDB(dbdata_t * DBdata) {
     createTable(DBdata);
-    // insertIntoTable(DBdata, "papa", 4, 3);
-    insertIntoTable(DBdata, "papa", 30, 3);
-    insertIntoTable(DBdata, "tomate", 50, 5);
+
+    insertIntoTable(DBdata, "papa", 1000, 500);
+    insertIntoTable(DBdata, "tomate", 1000, 500);
+    insertIntoTable(DBdata, "pepino", 1000, 500);
+    insertIntoTable(DBdata, "zanahoria", 1000, 500);
+    insertIntoTable(DBdata, "remolacha", 1000, 500);
+    insertIntoTable(DBdata, "zapallito", 1000, 500);
+    insertIntoTable(DBdata, "zucchini", 1000, 500);
 }
 
 int connectDB(dbdata_t* DBdata){

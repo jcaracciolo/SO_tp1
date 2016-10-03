@@ -1,5 +1,5 @@
 all:
 	gcc -c log.c
-	gcc -o ./log log.o
+	gcc -o log log.o
 	rm *.o
 
