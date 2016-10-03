@@ -148,14 +148,22 @@ int think(connection * con, int pid, int cash){
 }
 
 int main(int argc, char * argv[]) {
-    char buffer[MAX_BUF];
+    char buffer[MAX_BUF], hostAddress[MAX_BUF];
+
+    if(readAddrFromConfigFile("../Server/hostAddress.info", hostAddress)) {        
+        puts("Failed reading address in configuration file");
+        exit(1);      
+    }
 
     if (argc == 1) {
-
-        strcpy(buffer, ":5000/localhost");
+        strcpy(buffer, hostAddress);
     } else if (argc == 2) {
-        strcpy(buffer, argv[1]); //10.1.34.241
-        strcat(buffer, ":5000/localhost");
+        int i = 0;
+        while (hostAddress[i] != ':') {
+            i++;
+        }
+        strcpy(buffer, argv[1]);
+        strcat(buffer, hostAddress);
     } else {
         puts("Invalid quantity of arguments");
         exit(1);

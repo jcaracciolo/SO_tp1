@@ -126,6 +126,31 @@ int getRequestedProduct(connection* con,int* client,char* prodName){
     return 0;
 }
 
+readAddrFromConfigFile(char * path, char * addr) {
+    FILE * addrSource = fopen(path, "r");
+    if (addrSource == NULL) {
+      return -1;
+    }
+    char separators[] = {':', '/'};
+    int i = 0, j = 0, c;
+    c = fgetc(addrSource);
+    while(c != EOF) {
+        if (c == '\n') {
+            addr[i++] = separators[j++];
+        } else {
+            addr[i++] = c;
+        }
+        c = fgetc(addrSource);
+    }
+    addr[i] = '\0';
+
+    puts(addr);
+
+    if (j != 2) {
+      return -1;
+    }
+    return 0;
+}
 
 //This sends a buy transaction to the conection. Returns 1 if succesful
 // and 0 if not succesful. This is used exclusively by the client.

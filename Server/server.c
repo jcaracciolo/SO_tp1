@@ -417,8 +417,14 @@ int main(int argc, char *argv[]) {
 
     //Opening server
     puts("Opening server address\n");
-    strcpy(addrname,"127.0.0.1:5000/localhost");
-    log(INFO,"Opening Server addres");
+
+    if (readAddrFromConfigFile("hostAddress.info", addrname)) {        
+        puts("Failed reading address in configuration file");
+        log(MERROR, "Failed openning server's address.");
+        exit(1);
+    }
+
+    log(INFO,"Opening Server address");
     int serverFD = openAdress(addrname);
     if (serverFD < 0) {
         printf("Opening server address failed\n");
