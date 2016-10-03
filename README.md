@@ -9,14 +9,17 @@ In the root folder use "./run.sh". This will compile and execute the server, the
 
 ### Long Way
 In  root folder: 
-* make
+* make [optional: com=Sockets]
+---> Project compiled
+
+In root folder:
 * cd Server
 * ./run
 ---> Server Running
 
 Then in another terminal (from root folder):
 * cd Client
-* ./client
+* ./Client [optional: address to connect]
 ---> A simulated client running
 
 In a third terminal (From root folder):

@@ -4090,3 +4090,108 @@ INFO: UUID insertion succesful
 INFO: Opening Server address
 INFO: new client connected
 INFO: Attending client 5421 request price ($ 100) for product tomate
+INFO: open log
+INFO: Log created
+INFO: Connecting Database...
+INFO: Checking Database input...
+INFO: Checking Database output...
+INFO: Database I/O connection successful
+INFO: Checking Database error output...
+INFO: UUID insertion succesful
+INFO: new client connected
+INFO: Attending client 5648 request price ($ 39) for product remolacha
+INFO: new client connected
+INFO: Buy transaction from 5648 - papa stock: 10 out of 100 price: 330 out of 300 checks out
+INFO: Buy transaction from 5648 - 10 of papa purchased correctly at 300
+INFO: Attending client 5664 request price ($ 47) for product papa
+INFO: Attending client 5664 request price ($ 100) for product tomate
+INFO: Attending client 5664 request price ($ 80) for product pepino
+INFO: Attending client 5664 request price ($ 160) for product zucchini
+INFO: Attending client 5664 request price ($ 90) for product zapallito
+INFO: Attending client 5664 request price ($ 39) for product remolacha
+INFO: Attending client 5648 request stock (50) for product remolacha
+INFO: Attending client 5648 request price ($ 286) for product zucchini
+INFO: Attending client 5648 request stock (51) for product zucchini
+INFO: Attending client 5664 request price ($ 100) for product tomate
+INFO: Attending client 5664 request price ($ 286) for product zucchini
+INFO: Attending client 5664 request price ($ 90) for product zapallito
+INFO: Attending client 5664 request price ($ 39) for product remolacha
+INFO: Attending client 5648 request price ($ 100) for product tomate
+INFO: Buy transaction from 5648 - pepino stock: 6 out of 200 price: 80
+INFO: Buy transaction from 5648 - 6 of pepino purchased correctly at 480
+INFO: Sell transaction from 5648 - 6 of papa sold correctly at 282
+INFO: Buy transaction from 5648 - tomate stock: 2 out of 50 price: 220 out of 200 checks out
+INFO: Attending client 5664 request price ($ 50) for product cebolla
+INFO: Attending client 5664 request price ($ 286) for product zucchini
+INFO: Attending client 5664 request price ($ 39) for product remolacha
+INFO: Sell transaction from 5648 - zucchini stock: 1 out of 51 price: 286 out of 286 checks out
+INFO: Attending sell trans for client 5648, wanting to sell 7 of zucchini at a min of $ 2002 
+WARNING: Sell transaction from 5648 - Cannot reach minimal payment($ 2002 ), cost is  1904
+INFO: open log
+INFO: Log created
+INFO: Connecting Database...
+INFO: Checking Database input...
+INFO: Checking Database output...
+INFO: Checking Database error output...
+INFO: Database error output connection successful
+INFO: Initializing UUID database...
+INFO: UUID insertion succesful
+INFO: Opening Server address
+INFO: Attending client 5758 request stock (100) for product papa
+INFO: Attending client 5758 request price ($ 50) for product cebolla
+INFO: Attending client 5758 request price ($ 30) for product papa
+INFO: Attending client 5758 request price ($ 90) for product zapallito
+INFO: Buy transaction from 5758 - cebolla stock: 9 out of 100 price: 50
+INFO: Buy transaction from 5758 - cebolla stock: 9 out of 100 price: 495 out of 450 checks out
+INFO: Buy transaction from 5758 - 9 of cebolla purchased correctly at 450
+INFO: Attending client 5758 request price ($ 39) for product remolacha
+INFO: Buy transaction from 5758 - remolacha stock: 10 out of 50 price: 39
+INFO: Buy transaction from 5758 - 10 of remolacha purchased correctly at 390
+INFO: new client connected
+INFO: Buy transaction from 5758 - papa stock: 10 out of 100 price: 30
+INFO: Buy transaction from 5758 - 10 of papa purchased correctly at 300
+INFO: Attending buy trans for client 5758, wanting to buy 10 of zapallito at a max of $ 990 
+INFO: Buy transaction from 5758 - zapallito stock: 10 out of 150 price: 90
+INFO: Buy transaction from 5758 - zapallito stock: 10 out of 150 price: 990 out of 900 checks out
+INFO: Buy transaction from 5758 - 10 of zapallito purchased correctly at 900
+INFO: Attending sell trans for client 5758, wanting to sell 1 of remolacha at a min of $ 39 
+INFO: Sell transaction from 5758 - remolacha stock: 1 out of 40 price: 39 out of 64 checks out
+INFO: Attending client 5774 request price ($ 100) for product tomate
+INFO: Attending client 5774 request price ($ 68) for product cebolla
+INFO: Attending client 5774 request price ($ 61) for product remolacha
+INFO: open log
+INFO: Log created
+INFO: Connecting Database...
+INFO: Checking Database input...
+INFO: Checking Database output...
+INFO: Database I/O connection successful
+INFO: Checking Database error output...
+INFO: Database error output connection successful
+INFO: Initializing UUID database...
+INFO: new client connected
+INFO: Attending client 5792 request stock (50) for product tomate
+INFO: Attending client 5792 request price ($ 50) for product cebolla
+INFO: open log
+INFO: Log created
+INFO: Connecting Database...
+INFO: Checking Database input...
+INFO: Checking Database output...
+INFO: Checking Database error output...
+INFO: Opening Server address
+INFO: Attending client 6149 request price ($ 80) for product pepino
+INFO: new client connected
+INFO: Attending client 6149 request price ($ 39) for product remolacha
+INFO: Client disconnected
+INFO: open log
+INFO: Log created
+INFO: Connecting Database...
+INFO: Checking Database input...
+INFO: Checking Database output...
+INFO: Database I/O connection successful
+INFO: Checking Database error output...
+INFO: Initializing UUID database...
+INFO: UUID insertion succesful
+INFO: Opening Server address
+INFO: new client connected
+INFO: Buy transaction from 6249 - papa stock: 3 out of 100 price: 30
+INFO: Buy transaction from 6249 - papa stock: 3 out of 100 price: 99 out of 90 checks out
