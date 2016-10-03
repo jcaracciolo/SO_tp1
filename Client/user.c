@@ -88,6 +88,7 @@ void releaseProducts(productInfo_t * products);
 					printf("There are %i %s%s available to buy.\n", stock, prodName, stock == 1 ? "" : "s");
 				} else {
 					puts("Error getting stock.");
+					printError(stock);
 				}
 			}
 
@@ -101,6 +102,7 @@ void releaseProducts(productInfo_t * products);
 					printf("One %s costs %i gold coin%s.\n", prodName, price, price == 1 ? "" : "s");
 				} else {
 					puts("Error getting stock.");
+					printError(price);
 				}
 			}
 
