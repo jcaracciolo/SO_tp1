@@ -144,7 +144,7 @@ readAddrFromConfigFile(char * path, char * addr) {
     }
     addr[i] = '\0';
 
-    puts(addr);
+    close(addrSource);
 
     if (j != 2) {
       return -1;

@@ -87,7 +87,7 @@ connection * connectToAddres(char * addr) {
 	strcat(fifoPaths, con->inPath);
 
 	write(fdToConnect, fifoPaths, strlen(fifoPaths)+1);
-
+	
 	con->outFD=open(con->outPath,O_WRONLY);
 	con->inFD=open(con->inPath,O_RDONLY);
 
@@ -159,7 +159,8 @@ connection * readNewConnection(int fd) {
 //		con->outPath[j] = buf[i];
 //	}
 //	con->outPath[j] = '\0';
-
+	con->inFD=-1;
+	con->outFD=-1;
 	return con;
 }
 

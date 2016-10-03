@@ -16,6 +16,7 @@
 #include "DB/UUID_DataBase/DB.h"
 #include "Marshalling/marsh.h"
 #include "Logs/log.h"
+#include <poll.h>
 
 #define PATHDBIN "/tmp/fifoDBserverIN"
 #define PATHDBOUT "/tmp/fifoDBserverOut"
@@ -39,6 +40,8 @@ void createChild(connection * con) {
 
 	if ((childPID = fork()) == 0) {
 		// Child
+        close(2);
+        close(3);
         openConnection(con);
 		assist(con);
 		printf("Child fork failed\n");
@@ -64,7 +67,7 @@ void attExistsTransaction(connection * con) {
     sendInt(con, exists);
 }
 
-void attPriceTransaction(connection * con){
+void attPriceTransaction(connection * con) {
     int client;
     char prodName[MAX_PROD_NAME_LENGHT];
 
@@ -450,6 +453,24 @@ int main(int argc, char *argv[]) {
     		createChild(con);
             sem_close(sem);
     	} else if((clock() - begin) > 500 ){
+            struct pollfd poll_list[2];
+
+            poll_list[0].fd = 0;
+            poll_list[0].events = POLLIN;
+
+            // poll checks if something was sent to srdin
+            int readSmth = poll(poll_list, (unsigned long) 1, 10);
+            if(readSmth) {
+                char smth[MAX_BUF] = {0};
+                read(0, smth, 1);
+                smth[1] = '\0';
+                printf("read:.%s.\n", smth);
+                if(strcmp(smth, "q") == 0) {
+                    puts("Closing server...");
+                    return 0;
+                }                
+                while(getchar() !=  EOF);
+            }
 //            printf("\e[1;1H\e[2J");
 //            drawChart();
 //            begin=clock();
