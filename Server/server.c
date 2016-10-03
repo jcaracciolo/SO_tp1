@@ -23,6 +23,11 @@
 #define UUID_CANT 100
 #define SEMNAME "semDBss"
 
+
+
+int calculateProdPrice(productPriceData_t * priceData, int currentStock);
+int initialiceProduct(productPriceData_t * priceData, char* prodName,
+											int initalPrice, int initialStock, int priceAt0Stock);
 dbdata_t* DBdata;
 char* addrname;
 sem_t* sem;
@@ -393,7 +398,7 @@ int main(int argc, char *argv[]) {
 //            begin=clock();
 //            sem_wait(sem);
 //            printf("STOCK %d\n",getStock(DBdata,"papa"));
-//            sem_post(sem);
+	//            sem_post(sem);
 
 
         }
@@ -417,9 +422,9 @@ void drawChart(){
 
 void initializeDB(dbdata_t * DBdata) {
     createTable(DBdata);
-    insertIntoTable(DBdata, "papa", 4, 3);
-    insertIntoTable(DBdata, "papa", 8000000, 3);
-    insertIntoTable(DBdata, "tomate", 8000000, 6);
+    // insertIntoTable(DBdata, "papa", 4, 3);
+    insertIntoTable(DBdata, "papa", 30, 3);
+    insertIntoTable(DBdata, "tomate", 50, 5);
 }
 
 int connectDB(dbdata_t* DBdata){
@@ -467,4 +472,34 @@ void initializeUUID(unsigned int n){
     }
     log(INFO,"UUID insertion succesful");
     printf("\nUUID insertion succesful\n");
+}
+//This allocates and initialices the pricing information for later use
+//when the price needs updating
+int initialiceProducts(dataPrices_t * priceData ){
+	int trackedProducts = 1;
+	priceData = malloc(sizeof(productPriceData_t)*trackedProducts);
+	//char* prodName, int initalPrice, int initialStock, int priceAt0Stock
+	initialiceProduct(priceData->prods, "papa\0",3,30,10);
+	// initialiceProduct(priceData->prods[1], "tomate\0",10,20,50);
+}
+int initialiceProduct(productPriceData_t * priceData, char* prodName,
+											int initialPrice, int initialStock, int priceAt0Stock){
+
+		strcpy(priceData->prodName,prodName);
+		priceData->initialPrice = initialPrice;
+		priceData->initialStock = initialStock;
+		priceData->priceAt0Stock = priceAt0Stock;
+		priceData->m = (initialPrice - priceAt0Stock)*1.0/initialStock;
+}
+
+int printProductPriceData(productPriceData_t * priceData){
+	printf("Pricing data for %s\n", priceData->prodName);
+	printf("initPrice: %d initStock: %d\n", priceData->initialPrice,priceData->initialStock);
+	printf("m: %d priceAt0Stock: %d\n", priceData->m,priceData->priceAt0Stock);
+}
+
+int calculateProdPrice(productPriceData_t * priceData, int currentStock){
+	int x = round(priceData->m * currentStock) + priceData->priceAt0Stock;
+	if(x <= 0) return 1;
+	return x;
 }

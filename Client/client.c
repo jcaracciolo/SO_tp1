@@ -63,17 +63,17 @@ int updateWeights(transType_t action, int cost,int profit, int * priceWeight,
       break;
   }
   (*priceWeight) =  product->opsSincePrice + abs(product->priceTrend)
-                    + product->newPrice<0? 5:0;
+                    + product->newPrice<=0? 5:0;
   (*stockWeight) = lround(product->opsSinceStock / 2.0)+ product->remoteStock<0? 5:0;
   (*buyWeight) = lround( product->priceTrend * 2.0 - product->opsSincePrice / 2.0
-                        -  product->investedInStock/(2.0 * product->newPrice<0?1:product->newPrice)
-                        + cash / (1.0 * product->newPrice<0?1000:product->newPrice)) ;
+                        -  product->investedInStock/(2.0 * product->newPrice<=0?1:product->newPrice)
+                        + cash / (1.0 * product->newPrice<=0?1000:product->newPrice)) ;
 
 
   (*sellWeight) = lround( - product->priceTrend   * (2.0)
                           - product->opsSincePrice / 2.0
-                          +  product->investedInStock/(2.0 * product->newPrice<0?1000:product->newPrice)
-                          - cash / (1.0 * product->newPrice<0?1:product->newPrice));
+                          +  product->investedInStock/(2.0 * product->newPrice<=0?1000:product->newPrice)
+                          - cash / (1.0 * product->newPrice<=0?1:product->newPrice));
 
 
   if(*priceWeight <= 0) (*priceWeight = 1);
