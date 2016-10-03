@@ -76,7 +76,7 @@ int updateWeights(transType_t action, int cost,int profit, int * priceWeight,
 
   (*sellWeight) = lround( - product->priceTrend   * (2.0)
                           - product->opsSincePrice / 2.0
-                          +  product->investedInStock/(2.0 * product->newPrice<=0?1000:product->newPrice)
+                          +  product->investedInStock/(4.0 * product->newPrice<=0?1000:product->newPrice)
                           - cash / (1.0 * product->newPrice<=0?1:product->newPrice));
 
 
