@@ -78,7 +78,25 @@ void printProduct(productInfo_t * product);
  			}
 
 
-		} else if (len >= 10 && strncmp(entry, "get stock ", 10) == 0) {
+		} else if (len >= 10 && strncmp(entry, "get all stock", 13) == 0) {			
+  			for (i= 0; i < MAX_PRODUCTS; i++) {
+  				char prodName[MAX_BUF];
+  				strcpy(prodName, validProd[i]);
+				int stock = getStockFromDB(con,prodName,pid);
+				printf("There are %i %s%s available to buy.\n", stock, prodName, stock == 1 ? "" : "s");
+			}
+
+
+ 		} else if (len >= 10 && strncmp(entry, "get all price", 13) == 0) {			
+  			for (i= 0; i < MAX_PRODUCTS; i++) {
+  				char prodName[MAX_BUF];
+  				strcpy(prodName, validProd[i]);
+				int price = getPriceFromDB(con,prodName,pid);
+				printf("One %s costs %i gold coin%s.\n", prodName, price, price == 1 ? "" : "s");
+			}
+
+
+ 		}  else if (len >= 10 && strncmp(entry, "get stock ", 10) == 0) {
  			char prodName[MAX_BUF];
  			i = 10;
  			int j = 0;
@@ -89,6 +107,7 @@ void printProduct(productInfo_t * product);
 			int stock = getStockFromDB(con,prodName,pid);
 			printf("There are %i %s%s available to buy.\n", stock, prodName, stock == 1 ? "" : "s");
 
+
  		} else if (len >= 10 && strncmp(entry, "can i buy ", 10) == 0) {
  			char prodName[MAX_BUF];
  			i = 10;
@@ -98,9 +117,9 @@ void printProduct(productInfo_t * product);
  			}
  			prodName[j] = '\0';
 			if (isProdInDB(con, prodName, pid)) {
-				printf("Yes, you can buy %ss.\n", prodName, stock == 1 ? "" : "s");
+				printf("Yes, you can buy %ss.\n", prodName);
 			} else {
-				printf("No, you can't buy %ss.\n", prodName, stock == 1 ? "" : "s");
+				printf("No, you can't buy %ss.\n", prodName);
 			}
 			
 
@@ -262,7 +281,9 @@ int readArgs3(char * args, char * arg1, char * arg2, char * arg3) {
  	puts("\tprint inventory");
  	puts("\tcan i buy [product name]");
  	puts("\tget stock [product name]");
+ 	puts("\tget all stock");
  	puts("\tget price [product name]");
+ 	puts("\tget all price");
  	puts("\tbuy [product name] [quantity] [max total price]");
  	puts("\tsell product name] [quantity] [min total price]");
  	puts("\t--help");
