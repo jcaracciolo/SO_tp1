@@ -21,7 +21,7 @@
 #define PATHDBOUT "/tmp/fifoDBserverOut"
 #define MAX_BUF 300
 #define UUID_CANT 100
-#define SEMNAME "semBss"
+#define SEMNAME "semddmBss"
 
 dbdata_t* DBdata;
 char* addrname;

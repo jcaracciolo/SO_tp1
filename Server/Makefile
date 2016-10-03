@@ -32,7 +32,7 @@ OBJ+= server.o
 .PHONY: clean all
 
 all:
-	#cd Logs; make
+	cd Logs; make; mv log ..
 	gcc -g -c $(DB) $(COMS) $(SERVER) $(DBh) $(MARSH) $(MARSHh) $(COMSh) $(SERVERh) $(UUIDDBh) server.c server.h
 	g++ -g -c $(UUIDDB)
 	g++ -g -o run $(OBJ) -pthread
