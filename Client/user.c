@@ -35,7 +35,7 @@ void releaseProducts(productInfo_t * products);
 	    }
  	}
 
- 	printf("Connecting to %s...\n", entry);
+ 	printf("Connecting...\n");
 
 	connection * con = connectToAddres(entry);
 
