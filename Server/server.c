@@ -22,7 +22,8 @@
 #define PATHDBOUT "/tmp/fifoDBserverOut"
 #define MAX_BUF 300
 #define UUID_CANT 100
-#define SEMNAME "semddmBss"
+
+char SEMNAME[MAX_BUF];
 
 #define TRACKED_PRODUCTS 4
 #define TICKS_UNTIL_UPDATE 100
@@ -170,7 +171,7 @@ void attBuyTransaction(connection * con){
     int stock = getStock(DBdata, prodName);
 
     sprintf(buff,"Buy transaction from %d - %s stock: %d out of %d price: %d",client,prodName,amount,stock,price);
-    msglog(MERROR,buff);
+    msglog(INFO,buff);
 
     if (price * amount <= maxPay && stock >= amount && amount<=MAX_UUIDS_PER_ARRAY) {
 
@@ -411,15 +412,18 @@ int main(int argc, char *argv[]) {
 
     int f;
     puts("Initializing log");
+    char logPath[MAX_BUF];
+    int a = readLogFromConfigFile(logPath);
+
     if((f=fork())==0){
-        char* ar[3]={"log","DO_NOT_DELETE",NULL};
+        char* ar[3]={"log",logPath,NULL};
         execv("log",ar);
         puts("Log failed to execute");
         free(DBdata);
         free(addrname);
         exit(1);
     }else if(f<0){
-        perror("ERROR EXECUTING LOG");
+        perror(logPath);
         free(DBdata);
         free(addrname);
         exit(1);
@@ -451,7 +455,17 @@ int main(int argc, char *argv[]) {
 
     puts("Initializing synchronization");
     //initializing semaphores
+    
+    if (!readSemNameFromConfigFile(SEMNAME)) {
+        perror("Error initializing synchronization");
+        msglog(MERROR,"Error initializing synchronization");
+        msglog(INFO,"end of log");
+        exitDB(DBdata);
+        exit(1);
+    }
+
     sem=sem_open(SEMNAME,O_CREAT,0600,1);
+
     if(sem==SEM_FAILED){
         perror("Error initializing synchronization");
         msglog(MERROR,"Error initializing synchronization");

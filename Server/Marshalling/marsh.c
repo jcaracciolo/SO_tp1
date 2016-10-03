@@ -4,7 +4,7 @@
 #include <string.h>
 #include "marsh.h"
 #include "../Coms/coms.h"
-
+#define MAX_BUF  255
 
 
 void printStock(UUIDStock * stock);
@@ -156,6 +156,31 @@ int readAddrFromConfigFile(char * path, char * addr) {
     return 0;
 }
 
+int readLogFromConfigFile(char * logPath) {
+    FILE * addrSource = fopen("logFiles.info", "r");
+    if (addrSource == NULL) {
+      return -1;
+    }
+
+    int ret = fscanf(addrSource, "do_not_delete: %s", logPath);
+
+    fclose(addrSource);
+
+    return ret == 1;
+}
+
+int readSemNameFromConfigFile(char * semName) {
+    FILE * addrSource = fopen("semaphoreName.info", "r");
+    if (addrSource == NULL) {
+      return -1;
+    }
+
+    int ret = fscanf(addrSource, "sem_name: %s", semName);
+
+    fclose(addrSource);
+
+    return ret == 1;
+}
 //This sends a buy transaction to the conection. Returns 1 if succesful
 // and 0 if not succesful. This is used exclusively by the client.
 
