@@ -24,6 +24,7 @@ int main(){
             // Child
             execv("client",ar);
             printf("Child fork failed\n");
+            exit(1);
 
         }
         if(childPID<0){
