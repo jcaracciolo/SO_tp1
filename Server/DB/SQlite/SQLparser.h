@@ -13,9 +13,9 @@ int createTable(dbdata_t * dbData);
 
 int insertIntoTable(dbdata_t * dbData, char * name, int stock, int price);
 
-int getPrice(dbdata_t * dbData, char * prodName);
+int getPrice(dbdata_t * dbData, const char * prodName);
 
-int getStock(dbdata_t * dbData, char * prodName);
+int getStock(dbdata_t * dbData, const char * prodName);
 
 int updateTable(dbdata_t * dbData, char * prodName, int stock, int price);
 

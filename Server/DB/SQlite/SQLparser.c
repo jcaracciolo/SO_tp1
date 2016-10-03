@@ -51,21 +51,24 @@ int exitDB(dbdata_t * dbData) {
     return 0;
 }
 
-int getPrice(dbdata_t * dbData, char * prodName) {
+int getPrice(dbdata_t * dbData,const char * prodName) {
 	char str[MAX_BUFF] = {0};
-	int nameLen = strlen(prodName);
-	char * query = malloc(nameLen + 50); // query + name + '\n'
+    int nameLen = strlen(prodName);
+    char * query = calloc(nameLen + 50,1); // query + name + '\n'
 
-	sprintf(query, "select price from product where name = '%s';\n", prodName);
+    sprintf(query, "select price from product where name = \'%s\';\n", prodName);
 
-	write(dbData->fdin, query, strlen(query));
+    write(dbData->fdin, query, strlen(query));
 
-	read(dbData->fdout, str, MAX_BUFF);
+    read(dbData->fdout, str, MAX_BUFF);
+
+
     if (strncmp(str, query, strlen(query)) != 0) {
-    	return -1;
+        return -1;
     }
 
 	char * ans = str + strlen(query);
+
 
 	free(query);
 
@@ -73,7 +76,7 @@ int getPrice(dbdata_t * dbData, char * prodName) {
 	
 }
 
-int getStock(dbdata_t * dbData, char * prodName) {
+int getStock(dbdata_t * dbData, const char * prodName) {
 	char str[MAX_BUFF] = {0};
 	int nameLen = strlen(prodName);
 	char * query = calloc(nameLen + 50, 1); // query + name + '\n'
@@ -82,14 +85,15 @@ int getStock(dbdata_t * dbData, char * prodName) {
 
 	write(dbData->fdin, query, strlen(query));
 
-	read(dbData->fdout, str, MAX_BUFF) > 0;
+	read(dbData->fdout, str, MAX_BUFF);
     if (strncmp(str, query, strlen(query)) != 0) {
     	return -1;
     }
 	
 	char * ans = str + strlen(query);
 
-	free(query);
+    printf("STOC%s --- %s----- %s",query,prodName,str);
+    free(query);
 
 	return atoi(ans);
 	

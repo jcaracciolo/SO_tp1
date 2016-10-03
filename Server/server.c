@@ -21,7 +21,7 @@
 #define PATHDBOUT "/tmp/fifoDBserverOut"
 #define MAX_BUF 300
 #define UUID_CANT 100
-#define SEMNAME "semDBss"
+#define SEMNAME "sesdassswdwsss"
 
 dbdata_t* DBdata;
 char* addrname;
@@ -86,20 +86,34 @@ void attBuyTransaction(connection * con){
     sprintf(buff,"Attending buy trans for client %d, wanting to buy %d of %s at a max of $ %d ",client,amount,prodName,maxPay);
     log(INFO,buff);
 
+
+    if(amount > MAX_UUIDS_PER_ARRAY) {
+        sprintf(buff, "Buy transaction from %d - purchase too big (%d). Max amount per purchase: %d",client, amount,MAX_UUIDS_PER_ARRAY);
+        log(WARNING, buff);
+        sendInt(con,MAXUUIDS);
+        return MAXUUIDS;
+    }
+
+
     UUIDArray tdata;
     tdata.size=amount;
     pthread_t UUIDthread;
+
 
     int err = pthread_create(&(UUIDthread), NULL, &getNUUID, (void *)&tdata);
     if (err != 0) {
         //TODO make something
     }
+    sprintf(buff,"Buy transaction %s",prodName);
+    log(MERROR,buff);
 
 
     sem_wait(sem);
     int price = getPrice(DBdata, prodName);
     int stock = getStock(DBdata, prodName);
 
+    sprintf(buff,"Buy transaction from %d - %s stock: %d out of %d price: %d",client,prodName,amount,stock,price);
+    log(MERROR,buff);
 
     if (price * amount <= maxPay && stock >= amount && amount<=MAX_UUIDS_PER_ARRAY) {
 
@@ -128,13 +142,6 @@ void attBuyTransaction(connection * con){
             return STOCK;
         }
 
-        if(amount > MAX_UUIDS_PER_ARRAY) {
-            sprintf(buff, "Buy transaction from %d - purchase too big (%d). Max amount per purchase: %d",client, amount,MAX_UUIDS_PER_ARRAY);
-            log(WARNING, buff);
-            sendInt(con,MAXUUIDS);
-            return MAXUUIDS;
-        }
-
     }
 
     sem_post(sem);
@@ -158,9 +165,18 @@ void attSellTransaction(connection * con){
 
     getBuySellInfo(con,&client,prodName,&amount,&minPay);
 
+
     char buff[MAX_BUF];
     sprintf(buff,"Attending sell trans for client %d, wanting to sell %d of %s at a min of $ %d ",client,amount,prodName,minPay);
     log(INFO,buff);
+
+
+    if(amount > MAX_UUIDS_PER_ARRAY) {
+        sprintf(buff, "Sell transaction from %d - transaction too big (%d). Max amount per purchase: %d",client, amount,MAX_UUIDS_PER_ARRAY);
+        log(WARNING, buff);
+        sendInt(con,MAXUUIDS);
+        return MAXUUIDS;
+    }
 
     threadData tdata;
     tdata.n=amount;
@@ -180,7 +196,7 @@ void attSellTransaction(connection * con){
     void* ret;
     pthread_join(UUIDthread, &ret);
 
-    if (price * amount >= minPay && amount<=MAX_UUIDS_PER_ARRAY && ret==0) {
+    if (price * amount >= minPay && ret==0) {
 
         printf("amount: %i\n", amount);
         printf("old Stock: %i\n", stock);
@@ -210,13 +226,6 @@ void attSellTransaction(connection * con){
                     price * amount);
             log(WARNING, buff);
             return LESSMONEY;
-        }
-
-        if(amount > MAX_UUIDS_PER_ARRAY) {
-            sprintf(buff, "Sell transaction from %d - transaction too big (%d). Max amount per purchase: %d",client, amount,MAX_UUIDS_PER_ARRAY);
-            log(WARNING, buff);
-            sendInt(con,MAXUUIDS);
-            return MAXUUIDS;
         }
 
         if(ret!=0){
@@ -414,7 +423,6 @@ void drawChart(){
 
 void initializeDB(dbdata_t * DBdata) {
     createTable(DBdata);
-    insertIntoTable(DBdata, "papa", 4, 3);
     insertIntoTable(DBdata, "papa", 8000000, 3);
     insertIntoTable(DBdata, "tomate", 8000000, 6);
 }

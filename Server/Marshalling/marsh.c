@@ -38,7 +38,7 @@ int receiveString(connection * con,char * buf, int lenght){
 int sendInt(connection * con, int num){
     char  numHolder[sizeof(num)];
     memcpy(numHolder, &num, sizeof(num));
-    sendBytes(con, numHolder, sizeof(num));
+    sendBytes(con, &num, sizeof(num));
     return 0;
 }
 
@@ -137,14 +137,15 @@ int sendSellTransaction( connection * con, char * prodName,int amount,
     if(!receiveACK(con)) return NOCONECTION;
 
     //Receive prodname and send ack
-    sendString(con,prodName);
-    if(!receiveACK(con)) return NOCONECTION;
-
-    //Send amount of product to buy
     sendInt(con,amount);
     if(!receiveACK(con)) return NOCONECTION;
 
+    //Send amount of product to buy
     sendInt(con,minPrice);
+    if(!receiveACK(con)) return NOCONECTION;
+
+    sendString(con,prodName);
+
 
 
     UUIDArray tosell;
@@ -156,7 +157,8 @@ int sendSellTransaction( connection * con, char * prodName,int amount,
     // memccpy(tosell.uuids,(void*)&(stock->uuids[stock->last-amount]),amount,sizeof(UUID));
     tosell.size=amount;
 
-    if(!receiveACK(con)) return NOCONECTION;
+    if(!(r=receiveACK(con)))
+        return (r==MAXUUIDS)?MAXUUIDS:NOCONECTION;
 
     sendUUIDArray(con,&tosell);
 
@@ -181,16 +183,19 @@ int getBuySellInfo(connection* con,int *client, char *prodName, int *amount, int
     *client=receiveInt(con);
     sendACK(con);
 
-    //Receive prodname and send ack
-    receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
-    sendACK(con);
-
     //receive amount of product to buy
     *amount=receiveInt(con);
     sendACK(con);
 
     //receive max price the client is willing to pay
     *pay=receiveInt(con);
+    sendACK(con);
+
+    //Receive prodname and send ack
+    receiveString(con, prodName,MAX_PROD_NAME_LENGHT);
+
+
+
 
     return 0;
 }
@@ -206,16 +211,18 @@ int sendBuyTransaction( connection * con, char * prodName,int amount,
     if(!receiveACK(con)) return NOCONECTION;
 
   //Receive prodname and send ack
-  sendString(con,prodName);
-    if(!receiveACK(con)) return NOCONECTION;
-
-    //Send amount of product to buy
     sendInt(con,amount);
     if(!receiveACK(con)) return NOCONECTION;
 
+    //Send amount of product to buy
+
     sendInt(con,maxPrice);
+    if(!receiveACK(con)) return NOCONECTION;
+
+    sendString(con,prodName);
 
     if((r=receiveTransType(con)) == OK){
+        printf("revieving ok");
 
       sendACK(con);
       UUIDStock *ans=receiveUUIDArray(con,amount);
