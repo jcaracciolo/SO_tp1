@@ -19,7 +19,7 @@ void printProduct(productInfo_t * product);
  	int c, i = 0;
  	char entry[MAX_BUF];
     int pid = getpid();
-    int money = 20;
+    int money = 500;
 
 	// Connecting to Server
  	puts("Select an address to connect ('default' to connect locally):");
@@ -49,13 +49,6 @@ void printProduct(productInfo_t * product);
 
 	productInfo_t products[MAX_PRODUCTS];
 	initProducts(products);
-
-    // Creating UUIDStock
-    UUIDStock * stock = malloc(sizeof(UUIDStock));
-    stock->size = 0;
-    stock->last = 0;
-    stock->uuids = NULL;
-
 
 	// Interaction loop
 	while (1) {
