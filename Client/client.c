@@ -299,28 +299,41 @@ int initProducts(productInfo_t * products){
 //conservativeness = 0 means the client can spend all its cash on one buy
 int decideWhatToBuy(connection * con, productInfo_t * product, int cash,
                     int conservativeness,int pid){
-  if(product->newPrice == -1 ) {
-    printf("Not enough info to buy\n");
-    return 0;
-  }
-  int amount = rand() % (cash/(product->newPrice+conservativeness));
-  if(amount <= 0){
-    printf("I am trying to buy less than 1\n" );
-    return 0;
-  }
-  int finalCost = -1;
-  int ack = sendBuyTransaction( con, product->prodName, amount,
-                                amount*product->newPrice,
-                                product->stock,&finalCost, pid);
-  if(ack == 0 && finalCost >= 0){
-    printf("succesfuly bought %d %ss for %d\n",amount,product->prodName,finalCost);
-    product->productProfit -= finalCost;
-    product->investedInStock += finalCost;
-    return finalCost;
-  }
-  printf("Couldnt buy %d %ss\n",amount,product->prodName);
+    if(product->newPrice  <= 0 || conservativeness <= 0) {
+        printf("Not enough info to buy\n");
+        return 0;
+    }
+    if(cash <= 0 ) {
+        printf("Not enough money to buy\n");
+        return 0;
+    }
+    int maxProductsICouldBuy = cash/(product->newPrice+conservativeness);
+    if(maxProductsICouldBuy <= 0){
+        printf("I am too poor or it is too risky\n" );
+        return 0;
+    }
+    int amount = rand() % maxProductsICouldBuy;
+    if(amount <= 0){
+        printf("I am trying to buy less than 1\n" );
+        return 0;
+    }
+    if(amount *product->newPrice > cash){
+        printf("Dont have enough cash\n" );
+        return 0;
+    }
+    int finalCost = -1;
+    int ack = sendBuyTransaction( con, product->prodName, amount,
+                                  amount*product->newPrice,
+                                  product->stock,&finalCost, pid);
+    if(ack == 0 && finalCost >= 0){
+        printf("succesfuly bought %d %ss for %d\n",amount,product->prodName,finalCost);
+        product->productProfit -= finalCost;
+        product->investedInStock += finalCost;
+        return finalCost;
+    }
+    printf("Couldnt buy %d %ss\n",amount,product->prodName);
     printError(ack);
-  return 0;
+    return 0;
 }
 
 //Sends the sell transaction and return the profit of the transaction.

@@ -15,7 +15,7 @@ typedef struct adress_t address;
 
 typedef struct connection_t connection;
 
-typedef enum  {NOCONECTION=INT_MIN,INSUFPRODS,NOSTOCK,MAXUUIDS, MOREMONEY, LESSMONEY, INVALIDUUID,NOSUCHELEMENT,ACKNOWLEDGE,OK} conerrors_t;
+typedef enum  {NOCONECTION=INT_MIN,INSUFPRODS,NOSTOCK,MAXUUIDS, MOREMONEY, LESSMONEY, INVALIDUUID,NOSUCHELEMENT,ACKNOWLEDGE,SUCCESS} conerrors_t;
 
 
 //establishes a connection to the address

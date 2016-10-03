@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include<curses.h>
 #include <pthread.h>
 #include <time.h>
 #include "Coms/coms.h"
@@ -40,9 +41,6 @@ void createChild(connection * con) {
 
 	if ((childPID = fork()) == 0) {
 		// Child
-        close(2);
-        close(3);
-        openConnection(con);
 		assist(con);
 		printf("Child fork failed\n");
 	} else {
@@ -262,7 +260,7 @@ void attSellTransaction(connection * con){
         sprintf(buff, "Sell transaction from %d - %d of %s sold correctly at %d",client,amount,prodName,amount*price);
         log(INFO, buff);
 
-        return OK;
+        return SUCCESS;
     }else{
         sem_post(sem);
         if(price * amount < minPay) {
@@ -308,10 +306,30 @@ void* readNUUID(threadData* t){
    return (void*)0;
 
 }
+void attCloseTransaction(connection* con){
+    printf("finished transaction\n");
+    log(INFO,"Client disconnected");
+    sem_close(sem);
+    endConnection(con);
+    // Closing assistant
+    // close(con)
 
+}
+
+void deathHandler(int signo){
+    sem_close(sem);
+    exit(0);
+}
 
 
 void assist(connection* con) {
+
+    //In charge of releasing resources in case parent dies
+    struct sigaction sigchld_action = {
+            .sa_handler = &deathHandler
+    };
+    sigaction(SIGHUP, &sigchld_action, NULL);
+
     sem=sem_open(SEMNAME,0);
 
     while (1) {
@@ -336,11 +354,7 @@ void assist(connection* con) {
                             attExistsTransaction(con);
                             break;
                         case CLOSE:
-                            printf("finished transaction\n");
-                            sem_close(sem);
-                            endConnection(con);
-                            // Closing assistant
-                            // close(con)
+                            attCloseTransaction(con);
                             exit(0);
                         default:
                             printf("CLIENT PID %d\n\n", transactionType);
@@ -443,7 +457,7 @@ int main(int argc, char *argv[]) {
     puts("Server open. Listening...\n");
 
     clock_t begin=clock();
-    while (1) {
+    while (getch()==-1) {
 
         sem=sem_open(SEMNAME,0);
 

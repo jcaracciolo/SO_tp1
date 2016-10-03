@@ -196,7 +196,7 @@ int sendSellTransaction( connection * con, char * prodName,int amount,
 
     sendUUIDArray(con,&tosell);
 
-    if((r=receiveInt(con)) == OK){
+    if((r=receiveInt(con)) == SUCCESS){
 
       // stock->uuids = realloc(stock->uuids,(stock->last - amount)*sizeof(UUID));
       stock->last-=amount;
@@ -255,7 +255,7 @@ int sendBuyTransaction( connection * con, char * prodName,int amount,
 
     sendString(con,prodName);
 
-    if((r=receiveTransType(con)) == OK){
+    if((r=receiveTransType(con)) == SUCCESS){
         printf("revieving ok");
 
       sendACK(con);
@@ -335,7 +335,7 @@ void addUUIDsToStock(UUIDStock * stock, UUIDStock * newUUIDS){
 }
 
 int completePurchase(connection* con,UUIDArray* data,int payed){
-    sendTransType(con,OK);
+    sendTransType(con,SUCCESS);
     if(!receiveACK(con)) return NOCONECTION;
     sendUUIDArray(con,data);
     if(!receiveACK(con)) return NOCONECTION;
