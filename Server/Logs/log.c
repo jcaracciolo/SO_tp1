@@ -28,6 +28,8 @@ int main(int argc, char *argv[]){
     char buf[MAX_BUFFER]={0};
     struct tm *ts;
     time_t now;
+
+
     //Creating log file name
     now = time(0);
     ts = localtime(&now);

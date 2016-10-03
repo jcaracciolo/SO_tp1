@@ -48,6 +48,9 @@ int exitDB(dbdata_t * dbData) {
     if (strncmp(str, query, strlen(query)) != 0) {
     	return -1;
     }
+
+    close(dbData->fdin);
+    close(dbData->fdout);
     return 0;
 }
 
