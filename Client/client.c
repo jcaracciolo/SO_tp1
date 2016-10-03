@@ -13,7 +13,7 @@
 #include "../Server/DB/UUID_DataBase/data_types.h"
 
 #define END_OF_CONNECTION "KILLMEPLZ"
-#define TIME_SCALE 3
+#define TIME_SCALE 1
 #define OPS_PER_TICK 1
 #define MAX_BUF 300
 #define CONSERV_RELATION 3
@@ -150,9 +150,9 @@ int think(connection * con, int pid, int cash){
 int main(int argc, char * argv[]) {
     char buffer[MAX_BUF], hostAddress[MAX_BUF];
 
-    if(readAddrFromConfigFile("../Server/hostAddress.info", hostAddress)) {        
+    if(readAddrFromConfigFile("../Server/hostAddress.info", hostAddress)) {
         puts("Failed reading address in configuration file");
-        exit(1);      
+        exit(1);
     }
 
     if (argc == 1) {
@@ -299,7 +299,7 @@ int initProducts(productInfo_t * products){
 //conservativeness = 0 means the client can spend all its cash on one buy
 int decideWhatToBuy(connection * con, productInfo_t * product, int cash,
                     int conservativeness,int pid){
-    if(product->newPrice  <= 0 || conservativeness <= 0) {
+    if(product->newPrice  <= 0 || conservativeness < 0) {
         printf("Not enough info to buy\n");
         return 0;
     }
