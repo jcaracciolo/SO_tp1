@@ -1,13 +1,43 @@
+#include <math.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <strings.h>
+#include <string.h>
+#include <stdlib.h>
 #include "client.h"
+#include "../Server/Coms/coms.h"
+#include "../Server/Marshalling/marsh.h"
+#include "../Server/DB/UUID_DataBase/data_types.h"
+
+#define END_OF_CONNECTION "KILLMEPLZ"
+#define TIME_SCALE 3
+#define OPS_PER_TICK 1
+#define MAX_BUF 300
+#define CONSERV_RELATION 3
 
 
-
-
+void printProduct(productInfo_t * product);
+int totalStock(productInfo_t * products);
+int updatePrice(productInfo_t * product, int price);
+transType_t decideAction(int priceWeight,int stockWeight, int buyWeight, int sellWeight);
+int initProducts(productInfo_t * products);
+int decideWhatToBuy(connection * con, productInfo_t * product, int cash,
+                    int conservativeness,int pid);
+int decideWhatToSell( connection * con, productInfo_t * product,
+                      int conservativeness,int pid);
 int sellImportance(int price, int localStock, int stock){
-    return price ;
+  return price ;
 }
 
 
+char *conerrors[5]={   "Insufficient stock for that product",
+                       "Amount of units surpass maximum limit",
+                       "Money provided not enough for the transaction",
+                       "Products worth less than required",
+                       "UUIDS invalid"};
 
 
 
@@ -118,9 +148,10 @@ int think(connection * con, int pid, int cash){
 }
 
 int main(int argc, char * argv[]) {
-    char buffer[MAX_BUF]={0};
+    char buffer[MAX_BUF];
 
     if (argc == 1) {
+
         strcpy(buffer, ":5000/localhost");
     } else if (argc == 2) {
         strcpy(buffer, argv[1]); //10.1.34.241
@@ -129,10 +160,15 @@ int main(int argc, char * argv[]) {
         puts("Invalid quantity of arguments");
         exit(1);
     }
+        puts("Invalid quantity of arguments");
+        puts("Invalid quantity of arguments");
+        puts("Invalid quantity of arguments");
+        puts("Invalid quantity of arguments");
 
     int pid = getpid();
 
-    printf("Connecting to %s\n",buffer);
+    puts(buffer);
+
     connection *con = connectToAddres(buffer);
 
     srand(pid); //TODO change time to the PID of the process

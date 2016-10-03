@@ -363,9 +363,9 @@ void assist(connection* con) {
 
 
 void log(int priority,char* message){
-    msgbuf_t msg={0,{0}};
+    msgbuf_t msg;
     msg.mtype=priority;
-    strncpy(msg.message,message,MAX_MSG-1);
+    strcpy(msg.message,message);
     msgsnd(msqid,&msg,sizeof(msg),0);
 }
 
@@ -432,7 +432,7 @@ int main(int argc, char *argv[]) {
 	}
 
     clock_t begin=clock();
-    while (getchar() != '\n') {
+    while (1) {
 
         sem=sem_open(SEMNAME,0);
 
@@ -447,16 +447,11 @@ int main(int argc, char *argv[]) {
 //            begin=clock();
 //            sem_wait(sem);
 //            printf("STOCK %d\n",getStock(DBdata,"papa"));
-//            sem_post(sem);
+	//            sem_post(sem);
 
 
         }
     }
-
-    sem_close(sem);
-    sem_unlink(SEMNAME);
-    log(INFO,"end of log");
-    exitDB(DBdata);
 
 	return 0;
 }
@@ -562,4 +557,3 @@ int calculateProdPrice(productPriceData_t * priceData, int currentStock){
 	if(x <= 0) return 1;
 	return x;
 }
-

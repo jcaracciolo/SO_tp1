@@ -1,0 +1,18 @@
+INITIALIZE LOG OF 2016-10-02_23:37:59
+INFO: Log created
+INFO: Connecting Database...
+INFO: Checking Database input...
+INFO: Checking Database output...
+INFO: Database I/O connection successful
+INFO: Checking Database error output...
+INFO: Database error output connection successful
+INFO: Initializing UUID database...
+INFO: UUID insertion succesful
+INFO: Opening Server addres
+INFO: new client connected
+INFO: Attending client 12294 request price ($ 5) for product tomate
+INFO: Attending client 12294 request stock (30) for product papa
+INFO: Attending client 12294 request price ($ 5) for product tomate
+INFO: Attending buy trans for client 12294, wanting to buy 1 of tomate at a max of $ 5 
+INFO: Buy transaction from 12294 - tomate stock: 1 out of 50 price: 5 out of 5 checks out
+INFO: Buy transaction from 12294 - 1 of tomate purchased correctly at 5
