@@ -73,6 +73,7 @@ int sendBuyTransaction( connection * con, char * prodName, int amount,
 
 int getBuySellInfo(connection* con,int* client, char* prodName, int* amount,int* pay);
 
+int readAddrFromConfigFile(char * path, char * addr);
 
 int getRequestedProduct(connection* con,int* client,char* prodName);
 

@@ -29,7 +29,10 @@ productInfo_t * getProduct(productInfo_t * products, char * prodName);
  	entry[i] = '\0';
 
  	if (strcmp(entry, "default") == 0) {
- 		strcpy(entry, "127.0.0.1:5000/localhost");
+ 		if(readAddrFromConfigFile("../Server/hostAddress.info", entry)) {        
+	        puts("Failed reading address in configuration file");
+	        exit(1);      
+	    }
  	}
 
  	printf("Connecting to %s...\n", entry);
