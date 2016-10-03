@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include<curses.h>
 #include <pthread.h>
 #include <time.h>
 #include "Coms/coms.h"
@@ -253,7 +252,7 @@ void attSellTransaction(connection * con){
         log(INFO,buff);
 
 
-        sendTransType(con,OK);
+        sendTransType(con,SUCCESS);
         receiveACK(con);
         sendInt(con,price * amount);
 
@@ -318,6 +317,7 @@ void attCloseTransaction(connection* con){
 
 void deathHandler(int signo){
     sem_close(sem);
+    log(MERROR, "Master server died");
     exit(0);
 }
 
@@ -398,7 +398,7 @@ int main(int argc, char *argv[]) {
             .sa_handler = SIG_DFL,
             .sa_flags = SA_NOCLDWAIT
     };
-    sigaction(SIGCHLD, &sigchld_action, NULL);
+    sigaction(SIGUSR1, &sigchld_action, NULL);
 
 
     int f;
@@ -457,7 +457,7 @@ int main(int argc, char *argv[]) {
     puts("Server open. Listening...\n");
 
     clock_t begin=clock();
-    while (getch()==-1) {
+    while (1) {
 
         sem=sem_open(SEMNAME,0);
 
@@ -481,7 +481,8 @@ int main(int argc, char *argv[]) {
                 printf("read:.%s.\n", smth);
                 if(strcmp(smth, "q") == 0) {
                     puts("Closing server...");
-                    return 0;
+                    kill(0,SIGUSR1);
+                    exit(0);
                 }                
                 while(getchar() !=  EOF);
             }
