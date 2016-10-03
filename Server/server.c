@@ -363,7 +363,7 @@ void assist(connection* con) {
 
 
 void log(int priority,char* message){
-    msgbuf_t msg;
+    msgbuf_t msg={ .mtype=0,.message={0} };
     msg.mtype=priority;
     strcpy(msg.message,message);
     msgsnd(msqid,&msg,sizeof(msg),0);
@@ -430,6 +430,8 @@ int main(int argc, char *argv[]) {
         log(MERROR,"Opening server address failed");
         exit(1);
 	}
+
+    puts("Server open. Listening...\n");
 
     clock_t begin=clock();
     while (1) {

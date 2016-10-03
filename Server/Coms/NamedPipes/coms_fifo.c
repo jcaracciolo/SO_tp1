@@ -73,6 +73,8 @@ connection * connectToAddres(char * addr) {
 
 	if( access(fifoToConnect, F_OK ) == -1 ) {
     	puts("Pipe does not exist.");
+        free(con->inPath);
+        free(con->outPath);
     	exit(1);
 	}
 

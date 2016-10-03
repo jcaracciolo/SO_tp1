@@ -20,8 +20,8 @@ OBJ+= $(subst $(MARSHPath),.,$(MARSH:.c=.o))
 .PHONY: clean all
 
 all:
-	gcc -c $(COMS)  $(MARSH) $(COMSh) client.c
-	gcc $(OBJ) client.o -o client -lm
+	gcc -g -c $(COMS)  $(MARSH) $(COMSh) client.c
+	gcc -g $(OBJ) client.o -o client -lm
 	rm *.o
 
 	gcc -c $(COMS)  $(MARSH) $(COMSh) user.c
