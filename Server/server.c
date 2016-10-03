@@ -119,13 +119,24 @@ void attBuyTransaction(connection * con){
 
     int err = pthread_create(&(UUIDthread), NULL, &getNUUID, (void *)&tdata);
     if (err != 0) {
-        //TODO make something
+        sprintf(buff, "ERROR CREATING A THREAD, ASSISTANT MUST EXIT",client,prodName);
+        log(MERROR, buff);
+        sendInt(con,NOCONECTION);
+        //TODO liberar cosas
+        exit(0);
     }
-    sprintf(buff,"Buy transaction %s",prodName);
-    log(MERROR,buff);
 
 
     sem_wait(sem);
+
+    if(!existsInDB(DBdata,prodName)){
+        sem_post(sem);
+        sprintf(buff, "Buy transaction from %d - %s not a valid element",client,prodName);
+        log(WARNING, buff);
+        sendInt(con,NOSUCHELEMENT);
+        return NOSUCHELEMENT;
+    }
+
     int price = getPrice(DBdata, prodName);
     int stock = getStock(DBdata, prodName);
 
@@ -134,10 +145,7 @@ void attBuyTransaction(connection * con){
 
     if (price * amount <= maxPay && stock >= amount && amount<=MAX_UUIDS_PER_ARRAY) {
 
-        printf("amount: %i\n", amount);
-        printf("old Stock: %i\n", stock);
         updateStock(DBdata, prodName, stock - amount);
-        printf("New Stock: %i\n", getStock(DBdata, prodName));
 
         sprintf(buff,"Buy transaction from %d - %s stock: %d out of %d price: %d out of %d checks out",client,prodName,amount,stock,maxPay,price*amount);
         log(INFO,buff);
@@ -182,7 +190,6 @@ void attSellTransaction(connection * con){
 
     getBuySellInfo(con,&client,prodName,&amount,&minPay);
 
-
     char buff[MAX_BUF];
     sprintf(buff,"Attending sell trans for client %d, wanting to sell %d of %s at a min of $ %d ",client,amount,prodName,minPay);
     log(INFO,buff);
@@ -203,10 +210,23 @@ void attSellTransaction(connection * con){
 
     int err = pthread_create(&(UUIDthread), NULL, &readNUUID, (void *)&tdata);
     if (err != 0) {
-        //TODO make something
+        sprintf(buff, "ERROR CREATING A THREAD, ASSISTANT MUST EXIT",client,prodName);
+        log(MERROR, buff);
+        sendInt(con,NOCONECTION);
+        //TODO liberar cosas
+        exit(0);
     }
 
     sem_wait(sem);
+
+    if(!existsInDB(DBdata,prodName)){
+        sem_post(sem);
+        sprintf(buff, "Buy transaction from %d - %s not a valid element",client,prodName);
+        log(WARNING, buff);
+        sendInt(con,NOSUCHELEMENT);
+        return NOSUCHELEMENT;
+    }
+
     int price = getPrice(DBdata, prodName);
     int stock = getStock(DBdata, prodName);
 
@@ -446,8 +466,13 @@ void drawChart(){
 
 void initializeDB(dbdata_t * DBdata) {
     createTable(DBdata);
-    insertIntoTable(DBdata, "papa", 8000000, 3);
-    insertIntoTable(DBdata, "tomate", 8000000, 6);
+    insertIntoTable(DBdata, "papa", 1000, 500);
+    insertIntoTable(DBdata, "tomate", 1000, 500);
+    insertIntoTable(DBdata, "pepino", 1000, 500);
+    insertIntoTable(DBdata, "zanahoria", 1000, 500);
+    insertIntoTable(DBdata, "remolacha", 1000, 500);
+    insertIntoTable(DBdata, "zapallito", 1000, 500);
+    insertIntoTable(DBdata, "zucchini", 1000, 500);
 }
 
 int connectDB(dbdata_t* DBdata){

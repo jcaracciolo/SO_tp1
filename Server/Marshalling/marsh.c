@@ -166,12 +166,12 @@ int sendSellTransaction( connection * con, char * prodName,int amount,
     // memccpy(tosell.uuids,(void*)&(stock->uuids[stock->last-amount]),amount,sizeof(UUID));
     tosell.size=amount;
 
-    if(!(r=receiveACK(con)))
-        return (r==MAXUUIDS)?MAXUUIDS:NOCONECTION;
+    if((r=receiveInt(con))!=ACKNOWLEDGE)
+        return (r==0)?NOCONECTION:r;
 
     sendUUIDArray(con,&tosell);
 
-    if((r=receiveTransType(con)) == OK){
+    if((r=receiveInt(con)) == OK){
 
       // stock->uuids = realloc(stock->uuids,(stock->last - amount)*sizeof(UUID));
       stock->last-=amount;

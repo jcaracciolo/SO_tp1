@@ -2,9 +2,9 @@
 #define DATA_TYPES_H
 #include <stdint.h>
 
-#define STOCK_BLOCK_SIZE 11
-#define MAX_UUIDS_PER_ARRAY 10
-#define MAX_PROD_NAME_LENGHT 10
+#define STOCK_BLOCK_SIZE 25
+#define MAX_UUIDS_PER_ARRAY 50
+#define MAX_PROD_NAME_LENGHT 20
 
 typedef enum  {CLOSE,PRICE, STOCK, BUY, SELL, EXISTS} transType_t;
 
