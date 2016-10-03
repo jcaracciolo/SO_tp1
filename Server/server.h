@@ -34,6 +34,6 @@ void* readNUUID(threadData* t);
 
 
 int connectDB(dbdata_t* DBdata);
-void log(int priority,char* message);
+void msglog(int priority,char* message);
 
 #endif

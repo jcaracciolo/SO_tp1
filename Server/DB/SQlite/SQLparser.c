@@ -186,39 +186,39 @@ int checkDBConnection(dbdata_t* DBdata){
     char str[MAX_BUFF] = {0};
 
     printf("Checking Database input...\n\n");
-    log(INFO,"Checking Database input...");
+    msglog(INFO,"Checking Database input...");
 
     write(DBdata->fdin, msg, strlen(msg));
 
     printf("Checking Database output...\n\n");
-    log(INFO,"Checking Database output...");
+    msglog(INFO,"Checking Database output...");
     read(DBdata->fdout, str, MAX_BUFF);
 
     if(strcmp(str,"create table hola(a int);\ninsert into hola values(1);\nselect * from hola;\n1\ndrop table hola;\n")!=0) {
         printf("ERROR CONNECTING DATABASE I/O\n");
-        log(MERROR,"ERROR CONNECTING DATABASE I/O");
+        msglog(MERROR,"ERROR CONNECTING DATABASE I/O");
         printf("READ: %s", str);
         return -1;
     }
 
     printf("Database I/O connection successful\n\n");
-    log(INFO,"Database I/O connection successful");
+    msglog(INFO,"Database I/O connection successful");
 
     memset(str, 0, 200);
     printf("Checking Database error output...\n\n");
-    log(INFO,"Checking Database error output...");
+    msglog(INFO,"Checking Database error output...");
 
     write(DBdata->fdin, msgerror, strlen(msgerror));
     read(DBdata->fdout, str, MAX_BUFF);
 
     if(strcmp(str,"Error: near line 2: near \"TEST\": syntax error\n")!=0) {
         printf("ERROR CONNECTING DATABASE ERROR OUTPUT\n");
-        log(MERROR,"ERROR CONNECTING DATABASE ERROR OUTPUT");
+        msglog(MERROR,"ERROR CONNECTING DATABASE ERROR OUTPUT");
         printf("READ: %s", str);
         return -1;
     }
 
     printf("Database error output connection successful\n\n");
-    log(INFO,"Database error output connection successful");
+    msglog(INFO,"Database error output connection successful");
     return 0;
 }

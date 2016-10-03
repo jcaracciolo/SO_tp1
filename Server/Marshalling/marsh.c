@@ -43,7 +43,7 @@ int receiveString(connection * con,char * buf, int lenght){
 int sendInt(connection * con, int num){
     char  numHolder[sizeof(num)];
     memcpy(numHolder, &num, sizeof(num));
-    sendBytes(con, &num, sizeof(num));
+    sendBytes(con,(char *) &num, sizeof(num));
     return 0;
 }
 
@@ -295,13 +295,13 @@ int sendBuyTransaction( connection * con, char * prodName,int amount,
 void printStock(UUIDStock * stock){
   int i;
   for(i=0;i<stock->last;i++){
-    printf("%ld - %ld\n",stock->uuids[i].high,stock->uuids[i].low);
+    printf("%ld - %ld\n",(long int)stock->uuids[i].high,(long int)stock->uuids[i].low);
   }
 }
 void printArray(UUIDArray * stock){
   int i;
   for(i=0;i<stock->size;i++){
-    printf("%ld - %ld\n",stock->uuids[i].high,stock->uuids[i].low);
+    printf("%ld - %ld\n",(long int)stock->uuids[i].high,(long int)stock->uuids[i].low);
   }
 }
 

@@ -83,7 +83,7 @@ void attExistsTransaction(connection * con) {
 
     char buff[MAX_BUF];
     sprintf(buff,"Attending client %d request existence of product %s",client,prodName);
-    msglog(INFO,buff);
+    log(INFO,buff);
 
     sendInt(con, exists);
 }
@@ -100,7 +100,7 @@ void attPriceTransaction(connection * con) {
 
     char buff[MAX_BUF];
     sprintf(buff,"Attending client %d request price ($ %d) for product %s",client,price,prodName);
-    msglog(INFO,buff);
+    log(INFO,buff);
 
     sendInt(con, price);
 }
@@ -117,7 +117,7 @@ void attStockTransaction(connection * con){
 
     char buff[MAX_BUF];
     sprintf(buff,"Attending client %d request stock (%d) for product %s",client,stock,prodName);
-    msglog(INFO,buff);
+    log(INFO,buff);
 
     sendInt(con, stock);
 }
@@ -130,14 +130,14 @@ void attBuyTransaction(connection * con){
 
     char buff[MAX_BUF];
     sprintf(buff,"Attending buy trans for client %d, wanting to buy %d of %s at a max of $ %d ",client,amount,prodName,maxPay);
-    msglog(INFO,buff);
+    log(INFO,buff);
 
 
     if(amount > MAX_UUIDS_PER_ARRAY) {
         sprintf(buff, "Buy transaction from %d - purchase too big (%d). Max amount per purchase: %d",client, amount,MAX_UUIDS_PER_ARRAY);
-        msglog(WARNING, buff);
+        log(WARNING, buff);
         sendInt(con,MAXUUIDS);
-        return;
+        return MAXUUIDS;
     }
 
 
@@ -146,9 +146,10 @@ void attBuyTransaction(connection * con){
     pthread_t UUIDthread;
 
 
-    int err = pthread_create(&(UUIDthread), NULL,(void * (*)(void *)) &getNUUID, (void *)&tdata);
+    int err = pthread_create(&(UUIDthread), NULL, &getNUUID, (void *)&tdata);
     if (err != 0) {
-        msglog(MERROR, "ERROR CREATING A THREAD, ASSISTANT MUST EXIT");
+        sprintf(buff, "ERROR CREATING A THREAD, ASSISTANT MUST EXIT",client,prodName);
+        log(MERROR, buff);
         sendInt(con,NOCONECTION);
         //TODO liberar cosas
         exit(0);
@@ -160,39 +161,39 @@ void attBuyTransaction(connection * con){
     if(!existsInDB(DBdata,prodName)){
         sem_post(sem);
         sprintf(buff, "Buy transaction from %d - %s not a valid element",client,prodName);
-        msglog(WARNING, buff);
+        log(WARNING, buff);
         sendInt(con,NOSUCHELEMENT);
-        return;
+        return NOSUCHELEMENT;
     }
 
     int price = getPrice(DBdata, prodName);
     int stock = getStock(DBdata, prodName);
 
     sprintf(buff,"Buy transaction from %d - %s stock: %d out of %d price: %d",client,prodName,amount,stock,price);
-    msglog(MERROR,buff);
+    log(MERROR,buff);
 
     if (price * amount <= maxPay && stock >= amount && amount<=MAX_UUIDS_PER_ARRAY) {
 
         updateStock(DBdata, prodName, stock - amount);
 
         sprintf(buff,"Buy transaction from %d - %s stock: %d out of %d price: %d out of %d checks out",client,prodName,amount,stock,maxPay,price*amount);
-        msglog(INFO,buff);
+        log(INFO,buff);
 
     } else{
         sem_post(sem);
         if(price * amount > maxPay) {
             sprintf(buff, "Buy transaction from %d - Given money($ %d ) no enough, requires %d",client, maxPay,
                     price * amount);
-            msglog(WARNING, buff);
+            log(WARNING, buff);
             sendInt(con,MOREMONEY);
-            return;
+            return MOREMONEY;
         }
 
         if(stock < amount) {
             sprintf(buff, "Buy transaction from %d - Given stock ( %d ) not enough, required %d",client, stock,amount);
-            msglog(WARNING, buff);
+            log(WARNING, buff);
             sendInt(con,NOSTOCK);
-            return;
+            return STOCK;
         }
 
     }
@@ -205,10 +206,10 @@ void attBuyTransaction(connection * con){
 
     //tell the client the transaction went through and receive confirmation
     if(completePurchase(con,&tdata,price*amount)==NOCONECTION)
-        return;
+        return NOCONECTION;
 
     sprintf(buff, "Buy transaction from %d - %d of %s purchased correctly at %d",client,amount,prodName,amount*price);
-    msglog(INFO, buff);
+    log(INFO, buff);
 
 }
 void attSellTransaction(connection * con){
@@ -220,14 +221,14 @@ void attSellTransaction(connection * con){
 
     char buff[MAX_BUF];
     sprintf(buff,"Attending sell trans for client %d, wanting to sell %d of %s at a min of $ %d ",client,amount,prodName,minPay);
-    msglog(INFO,buff);
+    log(INFO,buff);
 
 
     if(amount > MAX_UUIDS_PER_ARRAY) {
         sprintf(buff, "Sell transaction from %d - transaction too big (%d). Max amount per purchase: %d",client, amount,MAX_UUIDS_PER_ARRAY);
-        msglog(WARNING, buff);
+        log(WARNING, buff);
         sendInt(con,MAXUUIDS);
-        return;
+        return MAXUUIDS;
     }
 
     threadData tdata;
@@ -236,9 +237,10 @@ void attSellTransaction(connection * con){
 
     pthread_t UUIDthread;
 
-    int err = pthread_create(&(UUIDthread), NULL,(void * (*)(void *)) &readNUUID, (void *)&tdata);
+    int err = pthread_create(&(UUIDthread), NULL, &readNUUID, (void *)&tdata);
     if (err != 0) {
-        msglog(MERROR, "ERROR CREATING A THREAD, ASSISTANT MUST EXIT");
+        sprintf(buff, "ERROR CREATING A THREAD, ASSISTANT MUST EXIT",client,prodName);
+        log(MERROR, buff);
         sendInt(con,NOCONECTION);
         //TODO liberar cosas
         exit(0);
@@ -249,9 +251,9 @@ void attSellTransaction(connection * con){
     if(!existsInDB(DBdata,prodName)){
         sem_post(sem);
         sprintf(buff, "Buy transaction from %d - %s not a valid element",client,prodName);
-        msglog(WARNING, buff);
+        log(WARNING, buff);
         sendInt(con,NOSUCHELEMENT);
-        return;
+        return NOSUCHELEMENT;
     }
 
     int price = getPrice(DBdata, prodName);
@@ -271,7 +273,7 @@ void attSellTransaction(connection * con){
         printf("New Stock: %i\n", getStock(DBdata, prodName));
 
         sprintf(buff,"Sell transaction from %d - %s stock: %d out of %d price: %d out of %d checks out",client,prodName,amount,stock,minPay,price);
-        msglog(INFO,buff);
+        log(INFO,buff);
 
 
         sendTransType(con,SUCCESS);
@@ -279,24 +281,24 @@ void attSellTransaction(connection * con){
         sendInt(con,price * amount);
 
         sprintf(buff, "Sell transaction from %d - %d of %s sold correctly at %d",client,amount,prodName,amount*price);
-        msglog(INFO, buff);
+        log(INFO, buff);
 
-        return;
+        return SUCCESS;
     }else{
         sem_post(sem);
         if(price * amount < minPay) {
             sendInt(con,LESSMONEY);
             sprintf(buff, "Sell transaction from %d - Cannot reach minimal payment($ %d ), cost is  %d",client, minPay,
                     price * amount);
-            msglog(WARNING, buff);
-            return;
+            log(WARNING, buff);
+            return LESSMONEY;
         }
 
         if(ret!=0){
             sendInt(con,INVALIDUUID);
             sprintf(buff, "Sell transaction from %d - Invalid UUIDS",client);
-            msglog(WARNING, buff);
-            return;
+            log(WARNING, buff);
+            return INVALIDUUID;
         }
 
     }
@@ -318,7 +320,8 @@ void* readNUUID(threadData* t){
 
     for(i=0;i<recieved->last;i++){
         if(!UUIDcontains(recieved->uuids[i])){
-					printf("%ld - %ld\n",(long int)recieved->uuids[i].high,(long int)recieved->uuids[i].low);
+					printf("%ld - %ld\n",recieved->uuids[i].high,recieved->uuids[i].low);
+
 					return (void*)1;
 				}
     }
@@ -328,7 +331,7 @@ void* readNUUID(threadData* t){
 }
 void attCloseTransaction(connection* con){
     printf("finished transaction\n");
-    msglog(INFO,"Client disconnected");
+    log(INFO,"Client disconnected");
     sem_close(sem);
     endConnection(con);
     // Closing assistant
@@ -338,7 +341,7 @@ void attCloseTransaction(connection* con){
 
 void deathHandler(int signo){
     sem_close(sem);
-    msglog(MERROR, "Master server died");
+    log(MERROR, "Master server died");
     exit(0);
 }
 
@@ -384,7 +387,7 @@ void assist(connection* con) {
 
 
 
-void msglog(int priority,char* message){
+void log(int priority,char* message){
     msgbuf_t msg={ .mtype=0,.message={0} };
     msg.mtype=priority;
     strcpy(msg.message,message);
@@ -404,7 +407,7 @@ int main(int argc, char *argv[]) {
             .sa_handler = SIG_DFL,
             .sa_flags = SA_NOCLDWAIT
     };
-    sigaction(SIGCHLD, &sigchld_action, NULL);
+    sigaction(SIGCHILD, &sigchld_action, NULL);
 
 
     int f;
@@ -431,14 +434,14 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    msglog(INFO,"open log");
-    msglog(INFO,"Log created");
+    log(INFO,"open log");
+    log(INFO,"Log created");
     puts("Log connection established\n");
 
 
 
     if(connectDB(DBdata)==-1){
-        msglog(INFO,"end of log");
+        log(INFO,"end of log");
         free(DBdata);
         free(addrname);
         exit(1);
@@ -452,8 +455,8 @@ int main(int argc, char *argv[]) {
     sem=sem_open(SEMNAME,O_CREAT,0600,1);
     if(sem==SEM_FAILED){
         perror("Error initializing synchronization");
-        msglog(MERROR,"Error initializing synchronization");
-        msglog(INFO,"end of log");
+        log(MERROR,"Error initializing synchronization");
+        log(INFO,"end of log");
         exitDB(DBdata);
         exit(1);
     }
@@ -463,24 +466,24 @@ int main(int argc, char *argv[]) {
 
     if (readAddrFromConfigFile("hostAddress.info", addrname)) {
         puts("Failed reading address in configuration file");
-        msglog(MERROR, "Failed openning server's address.");
+        log(MERROR, "Failed openning server's address.");
         sem_close(sem);
         sem_unlink(SEMNAME);
-        msglog(INFO,"end of log");
+        log(INFO,"end of log");
         exitDB(DBdata);
         free(DBdata);
         free(addrname);
         exit(1);
     }
 
-    msglog(INFO,"Opening Server address");
+    log(INFO,"Opening Server address");
     int serverFD = openAdress(addrname);
     if (serverFD < 0) {
         printf("Opening server address failed\n");
-        msglog(MERROR,"Opening server address failed");
+        log(MERROR,"Opening server address failed");
         sem_close(sem);
         sem_unlink(SEMNAME);
-        msglog(INFO,"end of log");
+        log(INFO,"end of log");
         exitDB(DBdata);
         free(DBdata);
         free(addrname);
@@ -501,7 +504,7 @@ int main(int argc, char *argv[]) {
     	connection * con = readNewConnection(serverFD);
 
         if(con!=NULL){
-            msglog(INFO,"new client connected");
+            log(INFO,"new client connected");
     		createChild(con);
             sem_close(sem);
 
@@ -551,7 +554,7 @@ int main(int argc, char *argv[]) {
     kill(0,SIGUSR1);
     sem_close(sem);
     sem_unlink(SEMNAME);
-    msglog(INFO,"end of log");
+    log(INFO,"end of log");
     exitDB(DBdata);
     free(DBdata);
     free(addrname);
@@ -600,12 +603,12 @@ int connectDB(dbdata_t* DBdata){
 
         char* ar[3]={"sqlite3","-echo",NULL};
         execv("./DB/SQlite/sqlite3",ar);
-        msglog(MERROR,"ERROR EXECUTING SQLITE!");
+        log(MERROR,"ERROR EXECUTING SQLITE!");
         printf("ERROR EXECUTING SQLITE!");
         return -1;
     } else {
         printf("Connecting Database...\n\n");
-        msglog(INFO,"Connecting Database...");
+        log(INFO,"Connecting Database...");
         DBdata->fdin = open(PATHDBIN,O_WRONLY);
         DBdata->fdout = open(PATHDBOUT,O_RDONLY);
 
@@ -623,13 +626,13 @@ int connectDB(dbdata_t* DBdata){
 void initializeUUID(unsigned int n){
     int i;
     printf("Initializing UUID database...\n\n");
-    msglog(INFO,"Initializing UUID database...");
+    log(INFO,"Initializing UUID database...");
     for(i=0;i<n;i++){
         printf("\rIn progress [%.*s%*s] %.2f %%",(i+1)*30/n,"||||||||||||||||||||||||||||||||||||||||",30-(i+1)*30/n,"", (i*100.0)/n);
         fflush(stdout);
         UUIDadd(newUUID((uint64_t) random(),(uint64_t) random()));
     }
-    msglog(INFO,"UUID insertion succesful");
+    log(INFO,"UUID insertion succesful");
     printf("\nUUID insertion succesful\n");
 }
 
