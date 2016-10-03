@@ -62,15 +62,20 @@ int updateWeights(transType_t action, int cost,int profit, int * priceWeight,
     default:
       break;
   }
-  (*priceWeight) = product->opsSincePrice + abs(product->priceTrend) ;
-  (*stockWeight) = lround(product->opsSinceStock / 2.0) ;
+  (*priceWeight) =  product->opsSincePrice + abs(product->priceTrend)
+                    + product->newPrice<0? 5:0;
+  (*stockWeight) = lround(product->opsSinceStock / 2.0)+ product->remoteStock<0? 5:0;
   (*buyWeight) = lround( product->priceTrend * 2.0 - product->opsSincePrice / 2.0
-                        -  product->investedInStock / (2.0 * product->newPrice)
-                        + cash / ((3.0 * product->newPrice))) ;
+                        -  product->investedInStock/(2.0 * product->newPrice<0?1:product->newPrice)
+                        + cash / (1.0 * product->newPrice<0?1000:product->newPrice)) ;
 
-  (*sellWeight) = lround( product->priceTrend   * (-2.0) - product->opsSincePrice / 2.0
-                        +  product->investedInStock / (2.0 * product->newPrice)
-                        - cash / ((1.0 * product->newPrice)));
+
+  (*sellWeight) = lround( - product->priceTrend   * (2.0)
+                          - product->opsSincePrice / 2.0
+                          +  product->investedInStock/(2.0 * product->newPrice<0?1000:product->newPrice)
+                          - cash / (1.0 * product->newPrice<0?1:product->newPrice));
+
+
   if(*priceWeight <= 0) (*priceWeight = 1);
   if(*stockWeight <= 0) (*stockWeight = 1);
   if(*buyWeight <= 0) (*buyWeight = 1);
@@ -93,19 +98,16 @@ int think(connection * con, int pid, int cash){
 
   while(cash > 0 || totalStock(products) > 0){
     if(opsInTick >= OPS_PER_TICK) {
-      printf("\n\nSleep and Tick\n");
       sleep(TIME_SCALE);
+      printf("\n\nSleep and Tick\n");
       opsInTick = 0;
     } else printf("\n\nTick\n");
     selectedProduct = &products[rand() % MAX_PRODUCTS];
     printProduct(selectedProduct);
 
-    int trend = selectedProduct->priceTrend;
-    buyWeight += trend;
-    sellWeight -= trend;
 
     printf("I got %d cash, PW:%d-SW:%d-BW:%d-SELLW:%d\n",
-    cash, priceWeight, stockWeight, buyWeight, sellWeight);
+            cash, priceWeight, stockWeight, buyWeight, sellWeight);
     action = decideAction(priceWeight,stockWeight,buyWeight,sellWeight);
     // int a = getchar();
     // while(getchar() != '\n');

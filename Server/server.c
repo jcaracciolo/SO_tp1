@@ -326,6 +326,8 @@ void assist(connection* con) {
     }
 }
 
+
+
 void log(int priority,char* message){
     msgbuf_t msg;
     msg.mtype=priority;
@@ -412,6 +414,7 @@ int main(int argc, char *argv[]) {
 //            sem_wait(sem);
 //            printf("STOCK %d\n",getStock(DBdata,"papa"));
 //            sem_post(sem);
+
 
         }
     }
