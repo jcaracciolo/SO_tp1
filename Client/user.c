@@ -35,7 +35,7 @@ void releaseProducts(productInfo_t * products);
 	    }
  	}
 
- 	printf("Connecting to %s...\n", entry);
+ 	printf("Connecting...\n");
 
 	connection * con = connectToAddres(entry);
 
@@ -84,7 +84,12 @@ void releaseProducts(productInfo_t * products);
   				char prodName[MAX_BUF];
   				strcpy(prodName, validProd[i]);
 				int stock = getStockFromDB(con,prodName,pid);
-				printf("There are %i %s%s available to buy.\n", stock, prodName, stock == 1 ? "" : "s");
+				if (stock >= 0) {
+					printf("There are %i %s%s available to buy.\n", stock, prodName, stock == 1 ? "" : "s");
+				} else {
+					puts("Error getting stock.");
+					printError(stock);
+				}
 			}
 
 
@@ -93,7 +98,12 @@ void releaseProducts(productInfo_t * products);
   				char prodName[MAX_BUF];
   				strcpy(prodName, validProd[i]);
 				int price = getPriceFromDB(con,prodName,pid);
-				printf("One %s costs %i gold coin%s.\n", prodName, price, price == 1 ? "" : "s");
+				if (price >= 0) {
+					printf("One %s costs %i gold coin%s.\n", prodName, price, price == 1 ? "" : "s");
+				} else {
+					puts("Error getting stock.");
+					printError(price);
+				}
 			}
 
 

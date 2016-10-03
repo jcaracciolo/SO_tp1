@@ -65,8 +65,9 @@ connection * connectToAddres(char * addr) {
 		return 0;
 	}
 
+    hostName[0] = '\0';
 	while (addr[i++] != '/');
-	while (addr[i] != '\0') {
+	while (addr[i] != '\0' && addr[i] != '/') {
 		hostName[j++] = addr[i];
 		i++;
 	}
@@ -77,8 +78,8 @@ connection * connectToAddres(char * addr) {
 	strcpy(fifoToConnect, "/tmp/");
 	strcat(fifoToConnect, hostName);
 
-	if( access(fifoToConnect, F_OK ) == -1 ) {
-    	puts("Pipe does not exist.");
+	if(access(fifoToConnect, F_OK ) == -1 || strcmp(fifoToConnect, "/tmp/") == 0) {
+    	printf("Pipe does not exist: %s\n", fifoToConnect);
         free(con->inPath);
         free(con->outPath);
     	exit(1);

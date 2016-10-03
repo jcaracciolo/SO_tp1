@@ -64,21 +64,22 @@ int main(int argc, char *argv[]){
             ans=msgrcv(msqid, &msg, sizeof(msgbuf_t), INFO, MSG_NOERROR | IPC_NOWAIT);
         }
 
-        switch((int)msg.mtype){
-            case MERROR:
-                fprintf(log,"ERROR: ");
-                break;
-            case WARNING:
-                fprintf(log,"WARNING: ");
-                break;
-            case INFO:
-                fprintf(log,"INFO: ");
-                break;
-            default:
-                break;
-        }
-
         if(ans!=0 && ans!=-1){
+
+            switch((int)msg.mtype){
+                case MERROR:
+                    fprintf(log,"ERROR: ");
+                    break;
+                case WARNING:
+                    fprintf(log,"WARNING: ");
+                    break;
+                case INFO:
+                    fprintf(log,"INFO: ");
+                    break;
+                default:
+                    break;
+            }
+
             fprintf(log,"%s\n",msg.message);
             fflush(log);
         }
