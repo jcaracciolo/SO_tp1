@@ -6,6 +6,7 @@
 #include "../Coms/coms.h"
 
 
+
 void printStock(UUIDStock * stock);
 void addUUIDsToStock(UUIDStock * stock, UUIDStock * newUUIDS);
 void printArray(UUIDArray * stock);
@@ -108,6 +109,14 @@ int getStockFromDB(connection * con, char * prodName,int client){
   return receiveInt(con);
 }
 
+int isProdInDB(connection * con, char * prodName,int client) {
+  sendTransType(con, EXISTS);
+    if(!receiveACK(con)) return NOCONECTION;
+  sendInt(con,client);
+    if(!receiveACK(con)) return NOCONECTION;
+  sendString(con, prodName);
+  return receiveInt(con);
+}
 
 int getRequestedProduct(connection* con,int* client,char* prodName){
     sendACK(con);
@@ -164,9 +173,9 @@ int sendSellTransaction( connection * con, char * prodName,int amount,
 
     if((r=receiveTransType(con)) == OK){
 
-      stock->uuids = realloc(stock->uuids,(stock->last - amount)*sizeof(UUID));
+      // stock->uuids = realloc(stock->uuids,(stock->last - amount)*sizeof(UUID));
       stock->last-=amount;
-      stock->size=stock->last - amount;
+      stock->size;
         sendACK(con);
         *finalGain=receiveInt(con);
         return 0;

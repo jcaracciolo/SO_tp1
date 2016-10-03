@@ -21,7 +21,7 @@
 #define PATHDBOUT "/tmp/fifoDBserverOut"
 #define MAX_BUF 300
 #define UUID_CANT 100
-#define SEMNAME "sesdassswdwsss"
+#define SEMNAME "semDBss"
 
 dbdata_t* DBdata;
 char* addrname;
@@ -40,6 +40,23 @@ void createChild(connection * con) {
 	} else {
         endConnection(con);
     }
+}
+
+void attExistsTransaction(connection * con) {
+    int client;
+    char prodName[MAX_PROD_NAME_LENGHT];
+
+    getRequestedProduct(con,&client,prodName);
+
+    sem_wait(sem);
+    int exists = existsInDB(DBdata, prodName);
+    sem_post(sem);
+
+    char buff[MAX_BUF];
+    sprintf(buff,"Attending client %d request existence of product %s",client,prodName);
+    log(INFO,buff);
+
+    sendInt(con, exists);
 }
 
 void attPriceTransaction(connection * con){
@@ -287,6 +304,9 @@ void assist(connection* con) {
                         case BUY:
                             attBuyTransaction(con);
                             break;
+                        case EXISTS:
+                            attExistsTransaction(con);
+                            break;
                         case CLOSE:
                             printf("finished transaction\n");
                             sem_close(sem);
@@ -314,6 +334,8 @@ void assist(connection* con) {
 
     }
 }
+
+
 
 void log(int priority,char* message){
     msgbuf_t msg;
@@ -401,6 +423,7 @@ int main(int argc, char *argv[]) {
 //            sem_wait(sem);
 //            printf("STOCK %d\n",getStock(DBdata,"papa"));
 //            sem_post(sem);
+
 
         }
     }

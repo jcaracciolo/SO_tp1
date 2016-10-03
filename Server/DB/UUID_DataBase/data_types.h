@@ -6,13 +6,13 @@
 #define MAX_UUIDS_PER_ARRAY 10
 #define MAX_PROD_NAME_LENGHT 10
 
-typedef enum  {CLOSE,PRICE, STOCK, BUY, SELL} transType_t;
+typedef enum  {CLOSE,PRICE, STOCK, BUY, SELL, EXISTS} transType_t;
 
 typedef struct{
     transType_t transType;
     char prodName[MAX_PROD_NAME_LENGHT+1];  //+1 because of \0
 
-} transaction;
+} query_t;
 
 typedef struct{
     uint64_t  high;

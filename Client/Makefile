@@ -21,7 +21,7 @@ OBJ+= $(subst $(MARSHPath),.,$(MARSH:.c=.o))
 
 all:
 	gcc -c $(COMS)  $(MARSH) $(COMSh) client.c
-	gcc $(OBJ) client.o -o client
+	gcc $(OBJ) client.o -o client -lm
 	rm *.o
 
 	gcc -c $(COMS)  $(MARSH) $(COMSh) user.c

@@ -18,7 +18,7 @@ productInfo_t * getProduct(productInfo_t * products, char * prodName);
  	int c, i = 0;
  	char entry[MAX_BUF];
     int pid = getpid();
-    int money = 50000;
+    int money = 20;
 
 	// Connecting to Server
  	puts("Select an address to connect ('default' to connect locally):");
@@ -45,7 +45,6 @@ productInfo_t * getProduct(productInfo_t * products, char * prodName);
 
 	productInfo_t products[MAX_PRODUCTS];
 	initProducts(products);
-
 
     // Creating UUIDStock
     UUIDStock * stock = malloc(sizeof(UUIDStock));
@@ -87,6 +86,21 @@ productInfo_t * getProduct(productInfo_t * products, char * prodName);
 			int stock = getStockFromDB(con,prodName,pid);
 			printf("There are %i %s%s available to buy.\n", stock, prodName, stock == 1 ? "" : "s");
 
+ 		} else if (len >= 10 && strncmp(entry, "can i buy ", 10) == 0) {
+ 			char prodName[MAX_BUF];
+ 			i = 10;
+ 			int j = 0;
+ 			while(entry[i] != '\0') {
+ 				prodName[j++] = entry[i++];
+ 			}
+ 			prodName[j] = '\0';
+			if (isProdInDB(con, prodName, pid)) {
+				printf("Yes, you can buy %ss.\n", prodName, stock == 1 ? "" : "s");
+			} else {
+				printf("No, you can't buy %ss.\n", prodName, stock == 1 ? "" : "s");
+			}
+			
+
  		} else if (len >= 10 && strncmp(entry, "get price ", 10) == 0) {
  			char prodName[MAX_BUF];
  			i = 10;
@@ -109,7 +123,7 @@ productInfo_t * getProduct(productInfo_t * products, char * prodName);
 
  			int totalPrice=0, ack;
    			ack = sendBuyTransaction(con, prodName, atoi(quantity), atoi(maxPrice), stock, &totalPrice,pid);
-   			if (ack < 0) {
+   			if (ack < 0 || money < totalPrice) {
    				printError(ack);
    			} else {
    				printf("You bought %s %s%s for a total cost of %i gold coins.\n", quantity, prodName, atoi(quantity) == 1 ? "" : "s", totalPrice);
@@ -139,6 +153,10 @@ productInfo_t * getProduct(productInfo_t * products, char * prodName);
    				printf("You sold %s %s%s and you gained %i gold coins.\n", quantity, prodName, atoi(quantity) == 1 ? "" : "s", profit);
    				money += profit;
    			}
+   		
+
+   		} else {
+   			puts("Unknown command");
    		}
 	}
 
@@ -228,6 +246,7 @@ int readArgs3(char * args, char * arg1, char * arg2, char * arg3) {
 
  void displayHelp() {
  	puts("Commands available:");
+ 	puts("\tcan i buy [product name]");
  	puts("\tget stock [product name]");
  	puts("\tget price [product name]");
  	puts("\tbuy [product name] [quantity] [max total price]");

@@ -66,13 +66,19 @@ connection * connectToAddres(char * addr) {
 	}
 	hostName[j] = '\0';
 
-		// send to addr info about the connection
+	// send to addr info about the connection
 	char fifoToConnect[MAX_BUF] = {0};
 	strcpy(fifoToConnect, "/tmp/");
 	strcat(fifoToConnect, hostName);
 
+	if( access(fifoToConnect, F_OK ) == -1 ) {
+    	puts("Pipe does not exist.");
+    	exit(1);
+	}
+
 	int fdToConnect = open(fifoToConnect, O_WRONLY);
 	char fifoPaths[MAX_BUF];
+
 
 	strcpy(fifoPaths, con->outPath);
 	strcat(fifoPaths, "\n");
