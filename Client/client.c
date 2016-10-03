@@ -115,11 +115,11 @@ int think(connection * con, int pid, int cash){
     // if(a == '1') action = STOCK;
     // if(a == '2') action = BUY;
     // if(a == '3') action = SELL;
+
     switch (action) {
       case PRICE:
         printf("Consulting price\n");
-        updatePrice(selectedProduct,
-                    getPriceFromDB(con,selectedProduct->prodName,pid));
+        updatePrice(selectedProduct,getPriceFromDB(con,selectedProduct->prodName,pid));
         break;
       case STOCK:
         printf("Consulting stock\n");
@@ -168,14 +168,9 @@ int main(int argc, char * argv[]) {
         puts("Invalid quantity of arguments");
         exit(1);
     }
-        puts("Invalid quantity of arguments");
-        puts("Invalid quantity of arguments");
-        puts("Invalid quantity of arguments");
-        puts("Invalid quantity of arguments");
-
     int pid = getpid();
 
-    puts(buffer);
+    printf("Connecting to ... %s\n",buffer);
 
     connection *con = connectToAddres(buffer);
     srand(pid); //TODO change time to the PID of the process
@@ -228,7 +223,7 @@ int main(int argc, char * argv[]) {
     // printf("after paying %d, i got %d papas\n",totalPrice, stock->last);
     puts("END TRANSACTION");
 
-	   disconnect(con);
+    disconnect(con);
 }
 
 

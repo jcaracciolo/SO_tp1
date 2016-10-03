@@ -146,24 +146,8 @@ connection * readNewConnection(int fd) {
 	}
 	con->outPath[i] = '\0';
 
-	//Proxy value since it will be set after forking
-	con->inFD=-1;
-	con->outFD=-1;
-	
-//	printf("se leyo %s\n",buf);
-//	read(fd, buf, MAX_BUF);
-//
-//	int i,j;
-//	for(i=0;buf[i] != '\n';i++){
-//		con->inPath[i] = buf[i];
-//	}
-//	con->inPath[i++] = '\0';
-//
-//	for(j=0;buf[i] != '\0';j++,i++){
-//		con->outPath[j] = buf[i];
-//	}
-//	con->outPath[j] = '\0';
 	openConnection(con);
+
 	return con;
 }
 

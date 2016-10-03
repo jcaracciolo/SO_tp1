@@ -2,7 +2,7 @@
 #include <set>
 #include <stdint.h>
 #include <stdlib.h>
-
+#include<algorithm>
 typedef struct{
     uint64_t high;
     uint64_t low;
@@ -14,12 +14,25 @@ bool operator<(const UUID &a,const UUID &b){
 
 static std::set<UUID> database;
 
+
 extern "C" UUID newUUID(uint64_t high,uint64_t low){
     UUID ans;
     ans.high=high;
     ans.low=low;
     return ans;
 }
+
+struct Deleter : public std::unary_function<int,bool> {
+    bool operator() (const UUID id) {delete(&id);}
+};
+
+extern "C" void exitUUID(){
+    std::for_each (database.begin (), database.end (), Deleter());
+    delete(&database);
+}
+
+
+
 
 extern "C" void UUIDadd(UUID id){
     database.insert(id);

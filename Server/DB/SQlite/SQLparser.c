@@ -180,7 +180,7 @@ int updateTable(dbdata_t * dbData, char * prodName, int stock, int price) {
 	return 0;
 }
 
-void checkDBConnection(dbdata_t* DBdata){
+int checkDBConnection(dbdata_t* DBdata){
     char *msg = "create table hola(a int);insert into hola values(1);select * from hola;drop table hola;\n";
     char *msgerror = "TEST;\n";
     char str[MAX_BUFF] = {0};
@@ -198,7 +198,7 @@ void checkDBConnection(dbdata_t* DBdata){
         printf("ERROR CONNECTING DATABASE I/O\n");
         log(MERROR,"ERROR CONNECTING DATABASE I/O");
         printf("READ: %s", str);
-        exit(1);
+        return -1;
     }
 
     printf("Database I/O connection successful\n\n");
@@ -215,9 +215,10 @@ void checkDBConnection(dbdata_t* DBdata){
         printf("ERROR CONNECTING DATABASE ERROR OUTPUT\n");
         log(MERROR,"ERROR CONNECTING DATABASE ERROR OUTPUT");
         printf("READ: %s", str);
-        exit(1);
+        return -1;
     }
 
     printf("Database error output connection successful\n\n");
     log(INFO,"Database error output connection successful");
+    return 0;
 }

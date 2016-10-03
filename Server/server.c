@@ -380,23 +380,7 @@ void assist(connection* con) {
                         case CLOSE:
                             attCloseTransaction(con);
                             exit(0);
-                        default:
-                            printf("CLIENT PID %d\n\n", transactionType);
-                            break;
-
                     }
-
-				// printf("%s thsi %d\n",buf,3);
-
-				// UUIDArray uuarr;
-				// uuarr.uuids[0].high = 1111111;
-				// uuarr.uuids[1].high = 222222222;
-				// uuarr.uuids[0].low = 3333333;
-				// uuarr.uuids[1].low = 5555555;
-				// uuarr.size = 2;
-				//
-				// sendUUIDArray(con, &uuarr);
-
 
     }
 }
@@ -411,6 +395,7 @@ void log(int priority,char* message){
 }
 
 int main(int argc, char *argv[]) {
+
     DBdata=malloc(sizeof(dbdata_t));
     addrname=calloc(MAX_BUF,1);
     char hostname[MAX_BUF];
@@ -430,15 +415,23 @@ int main(int argc, char *argv[]) {
     if((f=fork())==0){
         char* ar[3]={"log","DO_NOT_DELETE",NULL};
         execv("log",ar);
+        puts("Log failed to execute");
+        free(DBdata);
+        free(addrname);
+        exit(1);
     }else if(f<0){
         perror("ERROR EXECUTING LOG");
-        exit(0);
+        free(DBdata);
+        free(addrname);
+        exit(1);
     }
 
     int key = ftok("DO_NOT_DELETE",'A');
     if ((msqid = msgget(key, 0644)) == -1) {
         perror("ERROR CONNECTING LOG");
-        exit(0);
+        free(DBdata);
+        free(addrname);
+        exit(1);
     }
 
     log(INFO,"open log");
@@ -447,7 +440,12 @@ int main(int argc, char *argv[]) {
 
 
 
-    connectDB(DBdata);
+    if(connectDB(DBdata)==-1){
+        log(INFO,"end of log");
+        free(DBdata);
+        free(addrname);
+        exit(1);
+    }
 
     initializeUUID(UUID_CANT);
 
@@ -458,6 +456,8 @@ int main(int argc, char *argv[]) {
     if(sem==SEM_FAILED){
         perror("Error initializing synchronization");
         log(MERROR,"Error initializing synchronization");
+        log(INFO,"end of log");
+        exitDB(DBdata);
         exit(1);
     }
 
@@ -467,6 +467,12 @@ int main(int argc, char *argv[]) {
     if (readAddrFromConfigFile("hostAddress.info", addrname)) {
         puts("Failed reading address in configuration file");
         log(MERROR, "Failed openning server's address.");
+        sem_close(sem);
+        sem_unlink(SEMNAME);
+        log(INFO,"end of log");
+        exitDB(DBdata);
+        free(DBdata);
+        free(addrname);
         exit(1);
     }
 
@@ -475,6 +481,12 @@ int main(int argc, char *argv[]) {
     if (serverFD < 0) {
         printf("Opening server address failed\n");
         log(MERROR,"Opening server address failed");
+        sem_close(sem);
+        sem_unlink(SEMNAME);
+        log(INFO,"end of log");
+        exitDB(DBdata);
+        free(DBdata);
+        free(addrname);
         exit(1);
 	}
 
@@ -490,11 +502,13 @@ int main(int argc, char *argv[]) {
         sem=sem_open(SEMNAME,0);
 
     	connection * con = readNewConnection(serverFD);
-    	if(con!=NULL){
+
+        if(con!=NULL){
             log(INFO,"new client connected");
     		createChild(con);
             sem_close(sem);
-    	} else if((clock() - begin) > 500 ){
+
+        } else if((clock() - begin) > 500 ){
             struct pollfd poll_list[2];
 
             poll_list[0].fd = 0;
@@ -502,49 +516,49 @@ int main(int argc, char *argv[]) {
 
             // poll checks if something was sent to srdin
             int readSmth = poll(poll_list, (unsigned long) 1, 10);
+
             if(readSmth) {
                 char smth[MAX_BUF] = {0};
                 read(0, smth, 1);
                 smth[1] = '\0';
                 printf("read:.%s.\n", smth);
                 if(strcmp(smth, "q") == 0) {
-                    puts("Closing server...");
-                    kill(0,SIGUSR1);
-                    exit(0);
+                    break;
+
                 }                
                 while(getchar() !=  EOF);
             }
 
-						if(ticks++ >= TICKS_UNTIL_UPDATE){
-							int i,stock=0,price=0, oldPrice=0;
-							productPriceData_t * selectedPriceData;
-							sem_wait(sem);
-							for (i = 0; i < TRACKED_PRODUCTS ; i++) {
-								selectedPriceData = &priceData[i];
-								// printProductPriceData(selectedPriceData);
-								stock = getStock(DBdata,selectedPriceData->prodName);
-								oldPrice = getPrice(DBdata,selectedPriceData->prodName);
-								price = calculateProdPrice(selectedPriceData, stock);
-								updatePrice(DBdata, selectedPriceData->prodName, price);
-								printf("Updating price of %ss from %d to %d\n",
-								  			selectedPriceData->prodName,oldPrice,price);
-							}
-							sem_post(sem);
-							printf("\n\n");
-							ticks = 0;
-						}
-
-
-//            printf("\e[1;1H\e[2J");
-//            drawChart();
-//            begin=clock();
-//            sem_wait(sem);
-//            printf("STOCK %d\n",getStock(DBdata,"papa"));
-	//            sem_post(sem);
+            if(ticks++ >= TICKS_UNTIL_UPDATE){
+                int i,stock=0,price=0, oldPrice=0;
+                productPriceData_t * selectedPriceData;
+                sem_wait(sem);
+                for (i = 0; i < TRACKED_PRODUCTS ; i++) {
+                    selectedPriceData = &priceData[i];
+                    // printProductPriceData(selectedPriceData);
+                    stock = getStock(DBdata,selectedPriceData->prodName);
+                    oldPrice = getPrice(DBdata,selectedPriceData->prodName);
+                    price = calculateProdPrice(selectedPriceData, stock);
+                    updatePrice(DBdata, selectedPriceData->prodName, price);
+                    printf("Updating price of %ss from %d to %d\n",
+                                selectedPriceData->prodName,oldPrice,price);
+                }
+                sem_post(sem);
+                printf("\n\n");
+                ticks = 0;
+            }
         }
     }
 
-	return 0;
+    puts("Closing server...");
+    kill(0,SIGUSR1);
+    sem_close(sem);
+    sem_unlink(SEMNAME);
+    log(INFO,"end of log");
+    exitDB(DBdata);
+    free(DBdata);
+    free(addrname);
+    return 0;
 }
 
 void drawChart(){
@@ -591,14 +605,16 @@ int connectDB(dbdata_t* DBdata){
         execv("./DB/SQlite/sqlite3",ar);
         log(MERROR,"ERROR EXECUTING SQLITE!");
         printf("ERROR EXECUTING SQLITE!");
-        exit(1);
+        return -1;
     } else {
         printf("Connecting Database...\n\n");
         log(INFO,"Connecting Database...");
         DBdata->fdin = open(PATHDBIN,O_WRONLY);
         DBdata->fdout = open(PATHDBOUT,O_RDONLY);
 
-        checkDBConnection(DBdata);
+        if(checkDBConnection(DBdata)==-1)
+            return -1;
+
         initializeDB(DBdata);
 
     }
